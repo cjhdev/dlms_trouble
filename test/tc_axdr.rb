@@ -133,31 +133,6 @@ class TestAXDR < Test::Unit::TestCase
         assert_equal(AXDR::DFloat32.new(42.1), AXDR::DType.from_axdr!("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT")))
         assert_equal(AXDR::DFloat64.new(42.1), AXDR::DType.from_axdr!("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT")))
 
-
     end
-
-    def test_DInteger
-
-        value = AXDR::DInteger.new(5)
-        assert_true(value == 5)
-        
-    end
-
-    def test_DVisibleString
-        value = AXDR::DVisibleString.new("hello")
-        assert_true(value == "hello")        
-    end
-
-    def test_DArray
-        value = AXDR::DArray.new([
-            AXDR::DInteger.new(42),
-            AXDR::DVisibleString.new("helloworld"),
-            AXDR::DFloat32.new(42.1)
-        ])
-
-    end
-
-    
-
 
 end
