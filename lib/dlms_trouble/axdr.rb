@@ -54,7 +54,7 @@ module DLMSTrouble
         class EncodingError < Exception
         end
 
-        # These types exist so we can keep axdr meta data around
+        # The objective is to have native types that retain axdr meta data
         class DType
 
             attr_reader :value
@@ -86,11 +86,10 @@ module DLMSTrouble
             def ==(other)
                 @value == (other.respond_to?("is_a_dtype?".to_sym, true) ? other.value : other)
             end
-=begin
+            
             def kind_of?(klass)
                 @value.kind_of?(klass)
-            end
-=end            
+            end 
 
             def to_s
                 @value.to_s
@@ -107,138 +106,235 @@ module DLMSTrouble
             # @raise [EncodingError]
             def self.from_axdr!(input)
 
-                out = []
-                stack = []
+                out = nil
 
-                begin
-
-                    if stack.size > 0
-                        out = stack.last[:type]
-                    end
-
-                    type = DLMSTrouble::AXDR.const_get(TAGS[input.slice!(0).unpack("C").first])
+                type = DLMSTrouble::AXDR.const_get(TAGS[input.slice!(0).unpack("C").first])
                     
-                    case TAGS[type.tag]
-                    when :DArray, :DStructure
-                        stack.push({:type => type.new([]), :size => AXDR::getSize!(input)})                        
-                    when :DNullData
-                        out << type.new
-                    when :DVisibleString, :DOctetString
-                        type.new(input.slice!(0, AXDR::getSize!(input)))
-                    when :DBoolean
-                        case input.slice!(0).unpack("C").first
-                        when nil
-                            raise EncodingError
-                        when 0
-                            out << type.new(false)
-                        else
-                            out << type.new(true)
-                        end                
-                    when :DInteger
-                        out << type.new(input.slice!(0).unpack("c").first)
-                    when :DLong
-                        out << type.new(input.slice!(0,2).unpack("s>").first)
-                    when :DDoubleLong
-                        out << type.new(input.slice!(0,4).unpack("l>").first)
-                    when :DLong64
-                        out << type.new(input.slice!(0,8).unpack("q>").first)
-                    when :DEnum, :DUnsigned
-                        out << type.new(input.slice!(0).unpack("C").first)
-                    when :DLongUnsigned
-                        out << type.new(input.slice!(0,2).unpack("S>").first)
-                    when :DDoubleLongUnsigned
-                        out << type.new(input.slice!(0,4).unpack("L>").first)
-                    when :DLong64Unsigned
-                        out << type.new(input.slice!(0,8).unpack("Q>").first)
-                    when :DFloat32, :DFloatingPoint
-                        out << type.new(input.slice!(0,4).unpack("g").first)
-                    when :DFloat64
-                        out << type.new(input.slice!(0,8).unpack("G").first)
-                    else
+                case TAGS[type.tag]
+                when :DArray, :DStructure
+                    out = type.new([])
+                    size = AXDR::getSize!(input)
+                    while index < sizeSize do
+                        out = from_axdr!(input)
+                    end                    
+                when :DNullData
+                    out = type.new
+                when :DVisibleString, :DOctetString
+                    type.new(input.slice!(0, AXDR::getSize!(input)))
+                when :DBoolean
+                    case input.slice!(0).unpack("C").first
+                    when nil
                         raise EncodingError
-                    end
+                    when 0
+                        out = type.new(false)
+                    else
+                        out = type.new(true)
+                    end                
+                when :DInteger
+                    out = type.new(input.slice!(0).unpack("c").first)
+                when :DLong
+                    out = type.new(input.slice!(0,2).unpack("s>").first)
+                when :DDoubleLong
+                    out = type.new(input.slice!(0,4).unpack("l>").first)
+                when :DLong64
+                    out = type.new(input.slice!(0,8).unpack("q>").first)
+                when :DEnum, :DUnsigned
+                    out = type.new(input.slice!(0).unpack("C").first)
+                when :DLongUnsigned
+                    out = type.new(input.slice!(0,2).unpack("S>").first)
+                when :DDoubleLongUnsigned
+                    out = type.new(input.slice!(0,4).unpack("L>").first)
+                when :DLong64Unsigned
+                    out = type.new(input.slice!(0,8).unpack("Q>").first)
+                when :DFloat32, :DFloatingPoint
+                    out = type.new(input.slice!(0,4).unpack("g").first)
+                when :DFloat64
+                    out = type.new(input.slice!(0,8).unpack("G").first)
+                else
+                    raise EncodingError
+                end
 
-                    if stack.size > 0 and out.size == stack.last[:size]
-                        stack.pop
-                    end
-
-                end while stack.size > 0
-            
-                out.pop
-
+                out
+                
             end
 
             # convert DType subtype instance to axdr stream
             def self.to_axdr(data)
 
                 out = ""
-                stack = []
-                value = data
+                
+                out << [data.tag].pack("C")
 
-                begin
-
-                    loop do
-
-                        if stack.size > 0
-
-                            begin
-                                value = stack.last.next
-                            rescue StopIteration, UndefinedMethod
-                                break
-                            end
-                        end
-
-                        out << [value.tag].pack("C")
-
-                        case TAGS[value.tag]
-                        when :DArray, :DStructure
-                            out << AXDR::putSize(value.size)
-                            stack.push(value.each)
-                        when :DNullData
-                            out << ""
-                        when :DBoolean
-                            if value.value
-                                out << [1].pack("C")
-                            else
-                                out << [0].pack("C")
-                            end
-                        when :DVisibleString, :DOctetString
-                            out << AXDR::putSize(value.size)
-                            out << value
-                        when :DInteger
-                            out << [value].pack("c")
-                        when :DLong
-                            out << [value].pack("s>")
-                        when :DDoubleLong
-                            out << [value].pack("l>")
-                        when :DLong64
-                            out << [value].pack("q>")
-                        when :DEnum, :DUnsigned
-                            out << [value].pack("C")
-                        when :DLongUnsigned
-                            out << [value].pack("S>")
-                        when :DDoubleLongUnsigned
-                            out << [value].pack("L>")
-                        when :DLong64Unsigned
-                            out << [value].pack("Q>")
-                        when :DFloat32, :DFloatingPoint
-                            out << [value.value].pack("g")
-                        when :DFloat64
-                            out << [value.value].pack("G")
-                        else
-                            raise "incomplete feature #{value.class}"
-                        end
-
-                        if stack.size == 0; break end
-
+                case TAGS[data.tag]
+                when :DArray, :DStructure
+                    out << AXDR::putSize(data.size)
+                    data.each do |value|
+                        out << to_axdr(value)
                     end
+                when :DNullData
+                    out << ""
+                when :DBoolean
+                    if data.value
+                        out << [1].pack("C")
+                    else
+                        out << [0].pack("C")
+                    end
+                when :DVisibleString, :DOctetString
+                    out << AXDR::putSize(data.size)
+                    out << data
+                when :DInteger
+                    out << [data].pack("c")
+                when :DLong
+                    out << [data].pack("s>")
+                when :DDoubleLong
+                    out << [data].pack("l>")
+                when :DLong64
+                    out << [data].pack("q>")
+                when :DEnum, :DUnsigned
+                    out << [data].pack("C")
+                when :DLongUnsigned
+                    out << [data].pack("S>")
+                when :DDoubleLongUnsigned
+                    out << [data].pack("L>")
+                when :DLong64Unsigned
+                    out << [data].pack("Q>")
+                when :DFloat32, :DFloatingPoint
+                    out << [data.value].pack("g")
+                when :DFloat64
+                    out << [data.value].pack("G")
+                when :DDateTime
+                    if data.year == :undefined
+                        out << [0xffff].pack("S>")
+                    else
+                        out << [data.year].pack("S>")
+                    end
+                    case data.month
+                    when :dls_end
+                        out << [0xfd].pack("C")
+                    when :dls_begin
+                        out << [0xfe].pack("C")
+                    when :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.month].pack("C")
+                    end
+                    case data.dom
+                    when :last_dom
+                        out << [0xfe].pack("C")
+                    when :second_last_dom
+                        out << [0xfd].pack("C")
+                    when :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.dom].pack("C")
+                    end
+                    if data.dow == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.dow].pack("C")
+                    end
+                    if data.hour == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.hour].pack("C")
+                    end
+                    if data.min == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.min].pack("C")
+                    end
+                    if data.sec == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.sec].pack("C")
+                    end
+                    if data.hun == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.hun].pack("C")
+                    end
+                    if data.gmt_offset == :undefined
+                        out << [0x8000].pack("S>")
+                    else
+                        out << [data.gmt_offset].pack("S>")
+                    end
+                    clockStatus
+                    data.status.each do |s|
+                        case s
+                        when :invalidValue
+                            clockStatus |=  0x1
+                        when :doubtfulValue
+                            clockStatus |=  0x2
+                        when :differentClockBase
+                            clockStatus |=  0x4
+                        when :invalidClockStatus
+                            clockStatus |= 0x8                            
+                        when :dlsActive
+                            clockStatus |= 0x80                                    
+                        end
+                    end
+                    out << [clockStatus].pack("C")
 
-                    stack.pop
+                when :DTime
+                    if data.hour == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.hour].pack("C")
+                    end
+                    if data.min == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.min].pack("C")
+                    end
+                    if data.sec == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.sec].pack("C")
+                    end
+                    if data.hun == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.hun].pack("C")
+                    end
+                when :DDate
+                    if data.year == :undefined
+                        out << [0xffff].pack("S>")
+                    else
+                        out << [data.year].pack("S>")
+                    end
+                    case data.month
+                    when :dls_end
+                        out << [0xfd].pack("C")
+                    when :dls_begin
+                        out << [0xfe].pack("C")
+                    when :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.month].pack("C")
+                    end
+                    case data.dom
+                    when :last_dom
+                        out << [0xfe].pack("C")
+                    when :second_last_dom
+                        out << [0xfd].pack("C")
+                    when :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.dom].pack("C")
+                    end
+                    if data.dow == :undefined
+                        out << [0xff].pack("C")
+                    else
+                        out << [data.dow].pack("C")
+                    end
+                when :array
 
-                end while stack.size > 0
+                else
+                    raise "incomplete feature #{data.class}"
+                end
 
                 out
-
+                
             end
 
             protected
@@ -281,10 +377,6 @@ module DLMSTrouble
         end
 
         class DInteger < DType
-            def initialize(value)
-                raise EncodingError if !value.kind_of? Integer
-                super(value)
-            end            
         end
 
         class DLong < DInteger
@@ -318,12 +410,126 @@ module DLMSTrouble
         end
 
         class DDateTime < DType
+
+            attr_reader :year, :month, :dom, :dow, :hour, :min, :sec, :hun, :gmt_offset, :status
+        
+            def initialize(value=nil, **arg)
+
+                @value = {
+                    :year => :undefined,
+                    :month => :undefined,
+                    :dom => :undefined,
+                    :dow => :undefined,
+                    :hour => :undefined,
+                    :min => :undefined,
+                    :sec => :undefined,
+                    :hun => :undefined,
+                    :gmt_offset => :undefined,
+                    :status => :undefined
+                }
+            
+                if value.kind_of? Time
+
+                    @value.merge!({
+                        :year => value.year,
+                        :month => value.month,
+                        :dom => value.day,
+                        :dow => value.wday,
+                        :hour => value.hour,
+                        :min => value.min,
+                        :sec => value.sec,
+                        :hun => value.usec / 1000,
+                        :gmt_offset => value.gmt_offset                        
+                    })
+
+                elsif value.kind_of? Hash
+
+                    @value.merge!(value)
+                
+                elsif value.kind_of? String
+
+                    raise "incomplete feature"
+                    
+                end
+
+                @value.merge!(arg)
+                super(@value)                
+            end
+
+            def clockStatus(status)                
+            end
         end
 
         class DTime < DType
+
+            def initialize(value=nil, **arg)
+
+                @value = {
+                    :hour => :undefined,
+                    :min => :undefined,
+                    :sec => :undefined,
+                    :hun => :undefined
+                }
+            
+                if value.kind_of? Time
+
+                    @value.merge!({
+                        :hour => value.hour,
+                        :min => value.min,
+                        :sec => value.sec,
+                        :hun => value.usec / 1000
+                    })
+
+                elsif value.kind_of? Hash
+
+                    @value.merge!(value)
+                
+                elsif value.kind_of? String
+
+                    raise "incomplete feature"
+                    
+                end
+
+                @value.merge!(arg)
+                super(@value)  
+            end
+        
         end
 
         class DDate < DType
+
+            def initialize(value=nil, **arg)
+
+                @value = {
+                    :year => value.year,
+                    :month => value.month,
+                    :dom => value.day,
+                    :dow => value.wday
+                }
+            
+                if value.kind_of? Time
+
+                    @value.merge!({
+                        :year => value.year,
+                        :month => value.month,
+                        :dom => value.day,
+                        :dow => value.wday
+                    })
+
+                elsif value.kind_of? Hash
+
+                    @value.merge!(value)
+                
+                elsif value.kind_of? String
+
+                    raise "incomplete feature"
+                    
+                end
+
+                @value.merge!(arg)
+                super(@value)  
+            end
+        
         end
 
         

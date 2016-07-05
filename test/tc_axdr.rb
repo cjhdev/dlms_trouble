@@ -119,6 +119,8 @@ class TestAXDR < Test::Unit::TestCase
         assert_equal("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DFloat32.new(42.1)))
         assert_equal("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DFloat64.new(42.1)))
 
+        assert_equal("\x07\xe0\x01\x01\x05\x00\x00\x00\x00\x80\x00\x08",AXDR::DType.to_axdr(AXDR::DDateTime.new(Time.new(2016))))
+
     end
 
     def test_from_axdr!
@@ -134,5 +136,7 @@ class TestAXDR < Test::Unit::TestCase
         assert_equal(AXDR::DFloat64.new(42.1), AXDR::DType.from_axdr!("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT")))
 
     end
+
+
 
 end
