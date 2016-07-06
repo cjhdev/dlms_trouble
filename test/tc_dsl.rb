@@ -12,7 +12,6 @@ class TestDSL < Test::Unit::TestCase
             nullData("test")
         end
 
-        schema.evaluate(nil)
         schema.evaluate(AXDR::DNullData.new)
         
         assert_raise DSLError do
@@ -27,7 +26,6 @@ class TestDSL < Test::Unit::TestCase
             enum("test")
         end
 
-        schema.evaluate(42)
         schema.evaluate(AXDR::DEnum.new(42))
 
         assert_raise DSLError do
@@ -42,7 +40,6 @@ class TestDSL < Test::Unit::TestCase
             octetString("test")
         end
 
-        schema.evaluate("hello")
         schema.evaluate(AXDR::DOctetString.new("hello"))
 
         assert_raise DSLError do
@@ -57,7 +54,6 @@ class TestDSL < Test::Unit::TestCase
             octetString("test", size: 5)
         end
 
-        schema.evaluate("hello")
         schema.evaluate(AXDR::DOctetString.new("hello"))
 
         # test the boundary
@@ -73,7 +69,6 @@ class TestDSL < Test::Unit::TestCase
             octetString("test", size: 1..5)
         end
 
-        schema.evaluate("hello")
         schema.evaluate(AXDR::DOctetString.new("hello"))
 
         # test the maximum boundary
@@ -96,8 +91,7 @@ class TestDSL < Test::Unit::TestCase
             end
         end
 
-        schema.evaluate([0,1,2,3,4,5])
-        schema.evaluate(AXDR::DArray.new([0,1,2,3,4,5]))
+        schema.evaluate(AXDR::DArray.new(AXDR::DInteger.new(0),AXDR::DInteger.new(1),AXDR::DInteger.new(2),AXDR::DInteger.new(3),AXDR::DInteger.new(4),AXDR::DInteger.new(5)))
 
     end
 
@@ -109,32 +103,33 @@ class TestDSL < Test::Unit::TestCase
             end
         end
 
-        schema.evaluate([0,1,2,3,4,5])
-        schema.evaluate(AXDR::DArray.new([0,1,2,3,4,5]))
-
+        schema.evaluate(AXDR::DArray.new(AXDR::DInteger.new(0),AXDR::DInteger.new(1),AXDR::DInteger.new(2),AXDR::DInteger.new(3),AXDR::DInteger.new(4),AXDR::DInteger.new(5)))
+        
         # test the maximum boundary
         assert_raise DSLError do
-            schema.evaluate([0,1,2,3,4,5,6])
-        end
-
-        # test the minimum boundary
-        assert_raise DSLError do
-            schema.evaluate([])
+            schema.evaluate(AXDR::DArray.new(AXDR::DInteger.new(0),AXDR::DInteger.new(1),AXDR::DInteger.new(2),AXDR::DInteger.new(3),AXDR::DInteger.new(4),AXDR::DInteger.new(5),AXDR::DInteger.new(6)))
         end
 
     end
-
-    def test_evaluate_array_type
+    
+    def test_evaluate_array_sizeRange
 
         schema = DSL.new do            
-            array("test", size: 6) do
+            array("test", size: 1..6) do
                 integer("repeatingItem")
             end
         end
 
-        # assert repeating type
+        schema.evaluate(AXDR::DArray.new(AXDR::DInteger.new(0),AXDR::DInteger.new(1),AXDR::DInteger.new(2),AXDR::DInteger.new(3),AXDR::DInteger.new(4),AXDR::DInteger.new(5)))
+        
+        # test the maximum boundary
         assert_raise DSLError do
-            schema.evaluate([0,1,2,3,4,"hello"])
+            schema.evaluate(AXDR::DArray.new(AXDR::DInteger.new(0),AXDR::DInteger.new(1),AXDR::DInteger.new(2),AXDR::DInteger.new(3),AXDR::DInteger.new(4),AXDR::DInteger.new(5),AXDR::DInteger.new(6)))
+        end
+
+        # test the minimum boundary
+        assert_raise DSLError do
+            schema.evaluate(AXDR::DArray.new)
         end
 
     end

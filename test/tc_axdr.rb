@@ -69,57 +69,65 @@ class TestAXDR < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x00".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DNullData.new))
+        assert_equal("\x00".force_encoding("ASCII-8BIT"), AXDR::DNullData.new.to_axdr)
 
-        # technically an array should be the same type repeating
-        assert_equal("\x01\x04\x00\x03\x00\x09\x05hello\x01\x03\x00\x03\x00\x09\x05hello".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(
-            AXDR::DArray.new([
+        assert_equal("\x01\x06\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a".force_encoding("ASCII-8BIT"), 
+            AXDR::DArray.new(
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42)                
+            ).to_axdr        
+        )
+
+        assert_equal("\x13\x0F\x06\x2a\x2a\x2a\x2a\x2a\x2a".force_encoding("ASCII-8BIT"), 
+            AXDR::DCompactArray.new(
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42),
+                AXDR::DInteger.new(42)                
+            ).to_axdr        
+        )
+        
+         assert_equal("\x02\x04\x00\x03\x00\x09\x05hello\x02\x03\x00\x03\x00\x09\x05hello".force_encoding("ASCII-8BIT"), 
+            AXDR::DStructure.new(
                 AXDR::DNullData.new,
                 AXDR::DBoolean.new(false),
                 AXDR::DOctetString.new("hello"),
-                AXDR::DArray.new([
+                AXDR::DStructure.new(
                     AXDR::DNullData.new,
                     AXDR::DBoolean.new(false),
                     AXDR::DOctetString.new("hello"),
-                ])
-            ])        
-        ))
+                )
+            ).to_axdr        
+        )
 
-         assert_equal("\x02\x04\x00\x03\x00\x09\x05hello\x02\x03\x00\x03\x00\x09\x05hello".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(
-            AXDR::DStructure.new([
-                AXDR::DNullData.new,
-                AXDR::DBoolean.new(false),
-                AXDR::DOctetString.new("hello"),
-                AXDR::DStructure.new([
-                    AXDR::DNullData.new,
-                    AXDR::DBoolean.new(false),
-                    AXDR::DOctetString.new("hello"),
-                ])
-            ])        
-        ))
+        assert_equal("\x03\x00".force_encoding("ASCII-8BIT"), AXDR::DBoolean.new(false).to_axdr)
+        assert_equal("\x03\x01".force_encoding("ASCII-8BIT"), AXDR::DBoolean.new(true).to_axdr)
 
-        assert_equal("\x03\x00".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DBoolean.new(false)))
-        assert_equal("\x03\x01".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DBoolean.new(true)))
+        assert_equal("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), AXDR::DDoubleLong.new(-42).to_axdr)
+        assert_equal("\x06\x00\x00\x00\x2A".force_encoding("ASCII-8BIT"), AXDR::DDoubleLongUnsigned.new(42).to_axdr)
+        assert_equal("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), AXDR::DFloatingPoint.new(42.1).to_axdr)
 
-        assert_equal("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DDoubleLong.new(-42)))
-        assert_equal("\x06\x00\x00\x00\x2A".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DDoubleLongUnsigned.new(42)))
-        assert_equal("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DFloatingPoint.new(42.1)))
+        assert_equal("\x09\x05hello".force_encoding("ASCII-8BIT"), AXDR::DOctetString.new("hello").to_axdr)
+        assert_equal("\x0a\x05world".force_encoding("ASCII-8BIT"), AXDR::DVisibleString.new("world").to_axdr)
 
-        assert_equal("\x09\x05hello".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DOctetString.new("hello")))
-        assert_equal("\x0a\x05world".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DVisibleString.new("world")))
+        assert_equal("\x0f\xD6".force_encoding("ASCII-8BIT"), AXDR::DInteger.new(-42).to_axdr)
+        assert_equal("\x10\xFF\xD6".force_encoding("ASCII-8BIT"), AXDR::DLong.new(-42).to_axdr)
+        assert_equal("\x11\x2A".force_encoding("ASCII-8BIT"), AXDR::DUnsigned.new(42).to_axdr)
+        assert_equal("\x12\x00\x2A".force_encoding("ASCII-8BIT"), AXDR::DLongUnsigned.new(42).to_axdr)
 
-        assert_equal("\x0f\xD6".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DInteger.new(-42)))
-        assert_equal("\x10\xFF\xD6".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DLong.new(-42)))
-        assert_equal("\x11\x2A".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DUnsigned.new(42)))
-        assert_equal("\x12\x00\x2A".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DLongUnsigned.new(42)))
+        assert_equal("\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), AXDR::DLong64.new(-42).to_axdr)
+        assert_equal("\x15\x00\x00\x00\x00\x00\x00\x00\x2A".force_encoding("ASCII-8BIT"), AXDR::DLong64Unsigned.new(42).to_axdr)
+        assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), AXDR::DEnum.new(42).to_axdr)
+        assert_equal("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), AXDR::DFloat32.new(42.1).to_axdr)
+        assert_equal("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT"), AXDR::DFloat64.new(42.1).to_axdr)
 
-        assert_equal("\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DLong64.new(-42)))
-        assert_equal("\x15\x00\x00\x00\x00\x00\x00\x00\x2A".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DLong64Unsigned.new(42)))
-        assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DEnum.new(42)))
-        assert_equal("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DFloat32.new(42.1)))
-        assert_equal("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT"), AXDR::DType.to_axdr(AXDR::DFloat64.new(42.1)))
-
-        assert_equal("\x07\xe0\x01\x01\x05\x00\x00\x00\x00\x80\x00\x08",AXDR::DType.to_axdr(AXDR::DDateTime.new(Time.new(2016))))
+        #assert_equal("\x07\xe0\x01\x01\x05\x00\x00\x00\x00\x80\x00\x08",AXDR::DDateTime.new(Time.new(2016)).to_axdr)
 
     end
 

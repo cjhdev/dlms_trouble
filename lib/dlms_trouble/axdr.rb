@@ -19,11 +19,10 @@
 
 module DLMSTrouble
 
-    # Everything to handle moving between native types and AXDR.
-    #
-    #
+    # Everything for encoding/decoding AXDR
     module AXDR
 
+        # encoding tags mapped to DType subclasses
         TAGS = {
             0 => :DNullData,
             1 => :DArray,
@@ -54,7 +53,7 @@ module DLMSTrouble
         class EncodingError < Exception
         end
 
-        # The objective is to have native types that retain axdr meta data
+        # base container class for AXDR types
         class DType
 
             attr_reader :value
@@ -66,7 +65,9 @@ module DLMSTrouble
 
             # @return [Integer]
             def self.tag
-                TAGS.key(self.name.split('::').last.to_sym)
+                out = TAGS.key(self.name.split('::').last.to_sym)
+                if out.nil?; raise end
+                out
             end
 
             # @return [Integer]
@@ -74,49 +75,77 @@ module DLMSTrouble
                 self.class.tag
             end
 
-            def ===(other)
-                @value === (other.respond_to?("is_a_dtype?".to_sym, true) ? other.value : other)
-            end
-
-            def <=>(other)
-                
-                @value <=> (other.respond_to?("is_a_dtype?".to_sym, true) ? other.value : other)
+            # @return [String] serialised AXDR tag for this type
+            def axdr_tag
+                [tag].pack("C")
             end
 
             def ==(other)
-                @value == (other.respond_to?("is_a_dtype?".to_sym, true) ? other.value : other)
-            end
-            
-            def kind_of?(klass)
-                @value.kind_of?(klass)
-            end 
-
-            def to_s
-                @value.to_s
+                if other.kind_of?(AXDR::DType) and @value == other.value
+                    true
+                else
+                    false
+                end
             end
 
-            # bypass to wrapped value methods
-            def method_missing(name, *args, &blk)
-                @value.send(name, *args, &blk)                
+            def putTypeDescription
+                axdr_tag
             end
-
+   
             # factory method to produce DType instances from input
             #
             # @param input [String] slices from this string
             # @raise [EncodingError]
-            def self.from_axdr!(input)
+            # @return DType subclass instances
+            def self.from_axdr!(input, **opts)
 
                 out = nil
+                tag = nil
 
-                type = DLMSTrouble::AXDR.const_get(TAGS[input.slice!(0).unpack("C").first])
+                if !opts[:packed]
+                    tag = TAGS[input.slice!(0).unpack("C").first]
+                else
+                    tag = opts[:typedef].slice!(0).unpack("C").first
+                end
+
+                type = DLMSTrouble::AXDR.const_get(tag)
                     
                 case TAGS[type.tag]
                 when :DArray, :DStructure
-                    out = type.new([])
-                    size = AXDR::getSize!(input)
-                    while index < sizeSize do
-                        out = from_axdr!(input)
-                    end                    
+                    out = type.new
+
+                    if opts[:packed]
+                        size = AXDR::getSize!(input)
+                    else
+                        size = AXDR::getSize!(opts[:typedef])
+                    end
+                    
+                    index = 0
+                    while index < size do
+                        out << from_axdr!(input)
+                        index += 1
+                    end
+                
+                when :DPackedArray
+
+                    out = type.new
+
+                    if opts[:packed]
+                        raise "nested packed array not valid"
+                    end
+
+                    typedef = parseTypeDescription!(input)
+                    opts[:packed] = true
+                    size = getSize!(input)
+
+                    packedInput = input.slice!(0, size)
+
+                    while packedInput.size != 0 do
+
+                        opts[:typedef] = typedef.dup
+                        out << from_axdr!(input, opts)
+
+                    end
                 when :DNullData
                     out = type.new
                 when :DVisibleString, :DOctetString
@@ -129,7 +158,7 @@ module DLMSTrouble
                         out = type.new(false)
                     else
                         out = type.new(true)
-                    end                
+                    end                    
                 when :DInteger
                     out = type.new(input.slice!(0).unpack("c").first)
                 when :DLong
@@ -151,262 +180,355 @@ module DLMSTrouble
                 when :DFloat64
                     out = type.new(input.slice!(0,8).unpack("G").first)
                 else
-                    raise EncodingError
+                    raise "unexpected exception"
                 end
 
                 out
-                
+
             end
 
-            # convert DType subtype instance to axdr stream
-            def self.to_axdr(data)
+            ############################################################
+            private_class_method
 
-                out = ""
-                
-                out << [data.tag].pack("C")
+                # @return [String] parsed packed array typeDescription
+                def self.parseTypeDescription!(typeDescription)
 
-                case TAGS[data.tag]
-                when :DArray, :DStructure
-                    out << AXDR::putSize(data.size)
-                    data.each do |value|
-                        out << to_axdr(value)
+                    out = input.slice(0)
+                    
+                    case TAGS[input.slice!(0).unpack("C").first]
+                    when nil
+                        raise "invalid input"
+                    when :DArray
+                        out << typeDescription.slice(0,2)
+                        size = typeDescription.slice!(0,2).unpack("S>").first
+                        index = 0
+                        while index < size do
+                            out << __method__(typeDescription)
+                            index += 1
+                        end                    
+                    when :DStructure
+                        size = getSize!(input)
+                        out << AXDR::putSize(size)
+                        index = 0
+                        while index < size do
+                            out << __method__(typeDescription)
+                            index += 1
+                        end           
+                    when :DPackedArray
+                        raise "nested packed array not allowed"
                     end
-                when :DNullData
-                    out << ""
-                when :DBoolean
-                    if data.value
-                        out << [1].pack("C")
-                    else
-                        out << [0].pack("C")
-                    end
-                when :DVisibleString, :DOctetString
-                    out << AXDR::putSize(data.size)
-                    out << data
-                when :DInteger
-                    out << [data].pack("c")
-                when :DLong
-                    out << [data].pack("s>")
-                when :DDoubleLong
-                    out << [data].pack("l>")
-                when :DLong64
-                    out << [data].pack("q>")
-                when :DEnum, :DUnsigned
-                    out << [data].pack("C")
-                when :DLongUnsigned
-                    out << [data].pack("S>")
-                when :DDoubleLongUnsigned
-                    out << [data].pack("L>")
-                when :DLong64Unsigned
-                    out << [data].pack("Q>")
-                when :DFloat32, :DFloatingPoint
-                    out << [data.value].pack("g")
-                when :DFloat64
-                    out << [data.value].pack("G")
-                when :DDateTime
-                    if data.year == :undefined
-                        out << [0xffff].pack("S>")
-                    else
-                        out << [data.year].pack("S>")
-                    end
-                    case data.month
-                    when :dls_end
-                        out << [0xfd].pack("C")
-                    when :dls_begin
-                        out << [0xfe].pack("C")
-                    when :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.month].pack("C")
-                    end
-                    case data.dom
-                    when :last_dom
-                        out << [0xfe].pack("C")
-                    when :second_last_dom
-                        out << [0xfd].pack("C")
-                    when :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.dom].pack("C")
-                    end
-                    if data.dow == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.dow].pack("C")
-                    end
-                    if data.hour == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.hour].pack("C")
-                    end
-                    if data.min == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.min].pack("C")
-                    end
-                    if data.sec == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.sec].pack("C")
-                    end
-                    if data.hun == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.hun].pack("C")
-                    end
-                    if data.gmt_offset == :undefined
-                        out << [0x8000].pack("S>")
-                    else
-                        out << [data.gmt_offset].pack("S>")
-                    end
-                    clockStatus
-                    data.status.each do |s|
-                        case s
-                        when :invalidValue
-                            clockStatus |=  0x1
-                        when :doubtfulValue
-                            clockStatus |=  0x2
-                        when :differentClockBase
-                            clockStatus |=  0x4
-                        when :invalidClockStatus
-                            clockStatus |= 0x8                            
-                        when :dlsActive
-                            clockStatus |= 0x80                                    
-                        end
-                    end
-                    out << [clockStatus].pack("C")
 
-                when :DTime
-                    if data.hour == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.hour].pack("C")
-                    end
-                    if data.min == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.min].pack("C")
-                    end
-                    if data.sec == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.sec].pack("C")
-                    end
-                    if data.hun == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.hun].pack("C")
-                    end
-                when :DDate
-                    if data.year == :undefined
-                        out << [0xffff].pack("S>")
-                    else
-                        out << [data.year].pack("S>")
-                    end
-                    case data.month
-                    when :dls_end
-                        out << [0xfd].pack("C")
-                    when :dls_begin
-                        out << [0xfe].pack("C")
-                    when :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.month].pack("C")
-                    end
-                    case data.dom
-                    when :last_dom
-                        out << [0xfe].pack("C")
-                    when :second_last_dom
-                        out << [0xfd].pack("C")
-                    when :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.dom].pack("C")
-                    end
-                    if data.dow == :undefined
-                        out << [0xff].pack("C")
-                    else
-                        out << [data.dow].pack("C")
-                    end
-                when :array
-
-                else
-                    raise "incomplete feature #{data.class}"
+                    out
+            
                 end
 
-                out
-                
+        end
+
+        
+
+        class DOctetString < DType
+
+            def initialize(value)
+                super(value.to_s)
             end
 
-            protected
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << AXDR::putSize(@value.size)
+                out << @value
+            end
 
-                def is_a_dtype?
-                    true
+            def size
+                @value.size
+            end
+
+        end
+
+        class DVisibleString < DOctetString
+        end
+
+        class DFloat32 < DType
+
+            def initialize(value)
+                super([value.to_f].pack("g").unpack("g").first)
+            end
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("g")
+            end
+            
+        end
+        
+        class DFloat64 < DType
+
+            def initialize(value)
+                super(value.to_f)
+            end
+            
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("G")
+            end
+            
+        end
+        
+        class DFloatingPoint < DFloat32
+        end
+
+        class DNullData < DType
+
+            def initialize(value=nil)
+                super(nil)
+            end
+
+            def to_axdr(**opts)
+                opts[:packed] ? "" : axdr_tag
+            end
+
+        end
+
+        class DBoolean < DType
+        
+            def initialize(value)
+                @value = (value) ? true : false
+            end
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [(@value) ? 1 : 0].pack("C")
+            end
+            
+        end
+
+        class DInteger < DType
+
+            @minValue = -128
+            @maxValue = 127
+
+            def initialize(value)
+                super(value.to_i)
+                if @value < self.class.minValue and @value > self.class.minValue
+                    raise
+                end            
+            end
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("c")
+            end
+
+            private_class_method
+
+                def self.minValue
+                    @minValue
+                end
+                def self.maxValue
+                    @maxValue
                 end
             
         end
 
-        class DVisibleString < DType
-        end
+        class DEnum < DInteger
 
-        class DOctetString < DType
-        end
+            @minValue = 0
+            @maxValue = 255
 
-        class DEnum < DType
-        end
-
-        class DFloat32 < DType
-            def initialize(value)
-                super([value].pack("g").unpack("g").first)
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("C")
             end
-        end
-        class DFloat64 < DType
-        end
-        class DFloatingPoint < DType
-            def initialize(value)
-                super([value].pack("g").unpack("g").first)
-            end
-        end
-
-        class DNullData < DType
-            def initialize
-                super(nil)
-            end
-        end
-
-        class DBoolean < DType        
-        end
-
-        class DInteger < DType
+        
         end
 
         class DLong < DInteger
+
+            @minValue = -32768
+            @maxValue = 32767
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("s>")
+            end
+
         end
 
         class DDoubleLong < DInteger
+
+            @minValue = -2147483648
+            @maxValue = 214783647
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("l>")
+            end
+            
         end
 
         class DLong64 < DInteger
+
+            @minValue = -9223372036854775808
+            @maxValue = 9223372036854775807
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("q>")
+            end
+        
         end
 
         class DUnsigned < DInteger
+
+            @minValue = 0
+            @maxValue = 255
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("C")
+            end
+                
         end
         
         class DLongUnsigned < DInteger
+
+            @minValue = 0
+            @maxValue = 65535
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("S>")
+            end
+        
         end
 
-        class DDoubleLongUnsigned < DInteger            
+        class DDoubleLongUnsigned < DInteger
+
+            @minValue = 0
+            @maxValue = 4294967295
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("L>")
+            end
+        
         end
 
         class DLong64Unsigned < DInteger
+
+            @minValue = 0
+            @maxValue = 18446744073709551615
+
+            def to_axdr(**opts)
+                out = opts[:packed] ? "" : axdr_tag
+                out << [@value].pack("Q>")
+            end
+
         end
 
-        class DArray < DType            
+        class DArray < DType
+
+            def initialize(*value)
+
+                @value = Array.new
+                
+                value.each do |v|
+                    self.push(v)
+                end
+                
+            end
+
+            def push(value)
+
+                if value.kind_of?(AXDR::DType)
+                    if @value.size == 0 or value.class == @value.last.class
+                        @value.push(value)                    
+                    else
+                        raise "element must be same as all other elements"
+                    end
+                else
+                    "element must be DType"
+                end
+                                   
+            end
+
+            def to_axdr(**opts)
+                out = ""
+                if !opts[:packed]
+                    out << axdr_tag
+                    out << AXDR::putSize(@value.size)
+                end
+                @value.each do |sub|
+                    out << sub.to_axdr(opts)
+                end
+                out
+            end
+
+            def putTypeDescription
+                out = axdr_tag
+                if @value.size > 0xffff; raise "cannot express TypeDescription for an array larger than 0xffff elements" end
+                out << [@value.size].pack("S>")                
+                @value.each do |v|
+                    out << v.putTypeDescription
+                end
+                out
+            end
+
+            def size
+                @value.size
+            end
+
+            def each
+                @value.each
+            end
+
         end
         
-        class DCompactArray < DType           
+        class DCompactArray < DArray
+
+            def push(value)
+                if value.kind_of? self.class
+                    raise "cannot nest compact array"
+                end
+                super(value)                
+            end
+
+            def to_axdr(**opts)
+    
+                out = opts[:packed] ? ( raise "whoops" ) : axdr_tag
+
+                out << @value.first.putTypeDescription
+
+                data = ""
+
+                @value.each do |v|
+                    data << v.to_axdr(packed: true)
+                end
+
+                out << AXDR::putSize(data.size)
+                out << data
+                
+            end
+
+            def put_typeDescription
+                raise "cannot nest compact array"
+            end
+
         end
 
-        class DStructure < DType
+        class DStructure < DArray
+
+            def push(value)
+                @value.push(value)
+            end
+
+            def putTypeDescription
+                out = axdr_tag
+                out << AXDR::putSize(@value.size)
+                @value.each do |v|
+                    out << v.putTypeDescription
+                end
+                out
+            end
+
         end
 
         class DDateTime < DType
@@ -415,7 +537,7 @@ module DLMSTrouble
         
             def initialize(value=nil, **arg)
 
-                @value = {
+                default = {
                     :year => :undefined,
                     :month => :undefined,
                     :dom => :undefined,
@@ -430,7 +552,7 @@ module DLMSTrouble
             
                 if value.kind_of? Time
 
-                    @value.merge!({
+                    default.merge!({
                         :year => value.year,
                         :month => value.month,
                         :dom => value.day,
@@ -444,27 +566,123 @@ module DLMSTrouble
 
                 elsif value.kind_of? Hash
 
-                    @value.merge!(value)
-                
-                elsif value.kind_of? String
+                    default.merge!(value)
 
-                    raise "incomplete feature"
+                else
+
+                    raise "cannot handle this input"
                     
                 end
 
-                @value.merge!(arg)
-                super(@value)                
+                default.merge!(arg)
+
+                @year = default[:year]
+                @month = default[:month]
+                @dom = default[:dom]
+                @dow = default[:dow]
+                @hour = default[:hour]
+                @min = default[:min]
+                @sec = default[:sec]
+                @hun = default[:hun]
+                @gmt_offset = default[:gmt_offset]
+                
             end
 
-            def clockStatus(status)                
+            def to_axdr(**opts)
+            
+                out = super(opts)
+
+                if year == :undefined
+                    out << [0xffff].pack("S>")
+                else
+                    out << [year].pack("S>")
+                end
+                
+                case month
+                when :dls_end
+                    out << [0xfd].pack("C")
+                when :dls_begin
+                    out << [0xfe].pack("C")
+                when :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [month].pack("C")
+                end
+                
+                case dom
+                when :last_dom
+                    out << [0xfe].pack("C")
+                when :second_last_dom
+                    out << [0xfd].pack("C")
+                when :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [dom].pack("C")
+                end
+                
+                if dow == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [dow].pack("C")
+                end
+                
+                if hour == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [hour].pack("C")
+                end
+                
+                if min == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [min].pack("C")
+                end
+                
+                if sec == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [sec].pack("C")
+                end
+                
+                if hun == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [hun].pack("C")
+                end
+                
+                if gmt_offset == :undefined
+                    out << [0x8000].pack("S>")
+                else
+                    out << [gmt_offset].pack("S>")
+                end
+                
+                clockStatus
+                status.each do |s|
+                    case s
+                    when :invalidValue
+                        clockStatus |=  0x1
+                    when :doubtfulValue
+                        clockStatus |=  0x2
+                    when :differentClockBase
+                        clockStatus |=  0x4
+                    when :invalidClockStatus
+                        clockStatus |= 0x8                            
+                    when :dlsActive
+                        clockStatus |= 0x80                                    
+                    end
+                end
+                out << [clockStatus].pack("C")
             end
+                
         end
 
         class DTime < DType
 
+            attr_reader :hour, :min, :sec, :hun
+    
             def initialize(value=nil, **arg)
 
-                @value = {
+                default = {
                     :hour => :undefined,
                     :min => :undefined,
                     :sec => :undefined,
@@ -473,7 +691,7 @@ module DLMSTrouble
             
                 if value.kind_of? Time
 
-                    @value.merge!({
+                    default.merge!({
                         :hour => value.hour,
                         :min => value.min,
                         :sec => value.sec,
@@ -482,25 +700,57 @@ module DLMSTrouble
 
                 elsif value.kind_of? Hash
 
-                    @value.merge!(value)
+                    default.merge!(value)
                 
-                elsif value.kind_of? String
+                else
 
                     raise "incomplete feature"
                     
                 end
 
-                @value.merge!(arg)
-                super(@value)  
+                default.merge!(arg)
+
+                @hour = default[:hour]
+                @min = default[:min]
+                @sec = default[:sec]
+                @hun = default[:hun]
+                
+            end
+
+            def to_axdr(**opts)
+                out = super(opts)
+
+                if data.hour == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [data.hour].pack("C")
+                end
+                if data.min == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [data.min].pack("C")
+                end
+                if data.sec == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [data.sec].pack("C")
+                end
+                if data.hun == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [data.hun].pack("C")
+                end
             end
         
         end
 
         class DDate < DType
 
+            attr_reader :year, :month, :dom, :dow
+
             def initialize(value=nil, **arg)
 
-                @value = {
+                default = {
                     :year => value.year,
                     :month => value.month,
                     :dom => value.day,
@@ -509,25 +759,71 @@ module DLMSTrouble
             
                 if value.kind_of? Time
 
-                    @value.merge!({
+                    default.merge!({
                         :year => value.year,
                         :month => value.month,
                         :dom => value.day,
                         :dow => value.wday
                     })
 
-                elsif value.kind_of? Hash
+                elsif default.kind_of? Hash
 
-                    @value.merge!(value)
+                    default.merge!(value)
                 
-                elsif value.kind_of? String
+                else
 
                     raise "incomplete feature"
                     
                 end
 
-                @value.merge!(arg)
-                super(@value)  
+                default.merge!(arg)
+
+                @year = default[:year]
+                @month = default[:month]
+                @dom = default[:dom]
+                @dow = default[:dow]
+                
+            end
+
+            def to_axdr(**opts)
+
+                out = super(opts)
+
+                if year == :undefined
+                    out << [0xffff].pack("S>")
+                else
+                    out << [year].pack("S>")
+                end
+                
+                case month
+                when :dls_end
+                    out << [0xfd].pack("C")
+                when :dls_begin
+                    out << [0xfe].pack("C")
+                when :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [month].pack("C")
+                end
+                
+                case dom
+                when :last_dom
+                    out << [0xfe].pack("C")
+                when :second_last_dom
+                    out << [0xfd].pack("C")
+                when :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [dom].pack("C")
+                end
+                
+                if dow == :undefined
+                    out << [0xff].pack("C")
+                else
+                    out << [dow].pack("C")
+                end
+
+                out
             end
         
         end
