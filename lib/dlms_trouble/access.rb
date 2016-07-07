@@ -18,7 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'dlms_trouble/obis'
-require 'dlms_trouble/axdr'
+require 'dlms_trouble/data'
 
 module DLMSTrouble
 
@@ -62,7 +62,7 @@ module DLMSTrouble
 
         # @return [String]
         def to_request_data
-            AXDR::DType.to_axdr(@data)
+            @data.to_axdr
         end
 
     end
@@ -104,15 +104,15 @@ module DLMSTrouble
             out << [TAG_ACCESS_REQUEST, invokeIDAndPriority].pack("CL>")
 
             if @dateTime
-                out << putSize(@dateTime.size)
+                out << Data::putSize(@dateTime.size)
                 out << @dateTime
             end
 
-            out << putSize(@requests.size)
-            out << @requests.each { |request| out << request.to_specification }
+            out << Data::putSize(@requests.size)
+            out << @requests.each { |request| out << request.to_request_spec }
 
-            out << putSize(@requests.size)
-            out << @requests.each { |request| out << request.to_data }
+            out << Data::putSize(@requests.size)
+            out << @requests.each { |request| out << request.to_request_data }
 
             @status = :sent
             out
@@ -184,9 +184,9 @@ module DLMSTrouble
             # @param time [DateTime, Symbol] :now or a DateTime
             def timeStamp(time)
                 if time == :now
-                    @timeStamp = AXDR::DDateTime.new(DateTime.now)
+                    @timeStamp = Data::DDateTime.new(DateTime.now)
                 else
-                    @timeStamp = AXDR::DDateTime.new(time)
+                    @timeStamp = Data::DDateTime.new(time)
                 end
             end
 

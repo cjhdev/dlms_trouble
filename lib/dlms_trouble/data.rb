@@ -19,42 +19,40 @@
 
 module DLMSTrouble
 
-    # Everything for encoding/decoding AXDR
-    module AXDR
-
-        # encoding tags mapped to DType subclasses
-        TAGS = {
-            0 => :DNullData,
-            1 => :DArray,
-            2 => :DStructure,
-            3 => :DBoolean,
-            4 => :DBitString,
-            5 => :DDoubleLong,
-            6 => :DDoubleLongUnsigned,
-            7 => :DFloatingPoint,
-            9 => :DOctetString,
-            10 => :DVisibleString,
-            13 => :DBCD,
-            15 => :DInteger,
-            16 => :DLong,
-            17 => :DUnsigned,
-            18 => :DLongUnsigned,
-            19 => :DCompactArray,
-            20 => :DLong64,
-            21 => :DLong64Unsigned,
-            22 => :DEnum,
-            23 => :DFloat32,
-            24 => :DFloat64,
-            25 => :DDateTime,
-            26 => :DDate,
-            27 => :DTime
-        }
+    module Data
 
         class EncodingError < Exception
         end
 
-        # base container class for AXDR types
         class DType
+
+            # encoding tags mapped to DType subclasses
+            TAGS = {
+                0 => :DNullData,
+                1 => :DArray,
+                2 => :DStructure,
+                3 => :DBoolean,
+                4 => :DBitString,
+                5 => :DDoubleLong,
+                6 => :DDoubleLongUnsigned,
+                7 => :DFloatingPoint,
+                9 => :DOctetString,
+                10 => :DVisibleString,
+                13 => :DBCD,
+                15 => :DInteger,
+                16 => :DLong,
+                17 => :DUnsigned,
+                18 => :DLongUnsigned,
+                19 => :DCompactArray,
+                20 => :DLong64,
+                21 => :DLong64Unsigned,
+                22 => :DEnum,
+                23 => :DFloat32,
+                24 => :DFloat64,
+                25 => :DDateTime,
+                26 => :DDate,
+                27 => :DTime
+            }
 
             attr_reader :value
 
@@ -81,7 +79,7 @@ module DLMSTrouble
             end
 
             def ==(other)
-                if other.kind_of?(AXDR::DType) and @value == other.value
+                if other.kind_of?(DType) and @value == other.value
                     true
                 else
                     false
@@ -91,7 +89,7 @@ module DLMSTrouble
             def putTypeDescription
                 axdr_tag
             end
-   
+
             # factory method to produce DType instances from input
             #
             # @param input [String] slices from this string
@@ -108,16 +106,16 @@ module DLMSTrouble
                     tag = opts[:typedef].slice!(0).unpack("C").first
                 end
 
-                type = DLMSTrouble::AXDR.const_get(tag)
-                    
+                type = Data.const_get(TAGS[tag])
+
                 case TAGS[type.tag]
                 when :DArray, :DStructure
                     out = type.new
 
                     if opts[:packed]
-                        size = AXDR::getSize!(input)
+                        size = Data::getSize!(opts[:typedef])                        
                     else
-                        size = AXDR::getSize!(opts[:typedef])
+                        size = DatagetSize!(input)
                     end
                     
                     index = 0
@@ -126,7 +124,7 @@ module DLMSTrouble
                         index += 1
                     end
                 
-                when :DPackedArray
+                when :DCompactArray
 
                     out = type.new
 
@@ -136,7 +134,7 @@ module DLMSTrouble
 
                     typedef = parseTypeDescription!(input)
                     opts[:packed] = true
-                    size = getSize!(input)
+                    size = DatagetSize!(input)
 
                     packedInput = input.slice!(0, size)
 
@@ -149,7 +147,7 @@ module DLMSTrouble
                 when :DNullData
                     out = type.new
                 when :DVisibleString, :DOctetString
-                    type.new(input.slice!(0, AXDR::getSize!(input)))
+                    type.new(input.slice!(0, DatagetSize!(input)))
                 when :DBoolean
                     case input.slice!(0).unpack("C").first
                     when nil
@@ -193,9 +191,9 @@ module DLMSTrouble
                 # @return [String] parsed packed array typeDescription
                 def self.parseTypeDescription!(typeDescription)
 
-                    out = input.slice(0)
+                    out = typeDescription.slice(0)
                     
-                    case TAGS[input.slice!(0).unpack("C").first]
+                    case TAGS[typeDescription.slice!(0).unpack("C").first]
                     when nil
                         raise "invalid input"
                     when :DArray
@@ -207,8 +205,8 @@ module DLMSTrouble
                             index += 1
                         end                    
                     when :DStructure
-                        size = getSize!(input)
-                        out << AXDR::putSize(size)
+                        size = DatagetSize!(typeDescription)
+                        out << DataputSize(size)
                         index = 0
                         while index < size do
                             out << __method__(typeDescription)
@@ -224,8 +222,6 @@ module DLMSTrouble
 
         end
 
-        
-
         class DOctetString < DType
 
             def initialize(value)
@@ -234,7 +230,7 @@ module DLMSTrouble
 
             def to_axdr(**opts)
                 out = opts[:packed] ? "" : axdr_tag
-                out << AXDR::putSize(@value.size)
+                out << Data::putSize(@value.size)
                 out << @value
             end
 
@@ -253,17 +249,25 @@ module DLMSTrouble
                 super([value.to_f].pack("g").unpack("g").first)
             end
 
+            def to_f
+                @value.dup
+            end
+
             def to_axdr(**opts)
                 out = opts[:packed] ? "" : axdr_tag
                 out << [@value].pack("g")
             end
             
         end
-        
+
         class DFloat64 < DType
 
             def initialize(value)
                 super(value.to_f)
+            end
+
+            def to_f
+                @value.dup
             end
             
             def to_axdr(**opts)
@@ -272,7 +276,7 @@ module DLMSTrouble
             end
             
         end
-        
+
         class DFloatingPoint < DFloat32
         end
 
@@ -289,7 +293,7 @@ module DLMSTrouble
         end
 
         class DBoolean < DType
-        
+
             def initialize(value)
                 @value = (value) ? true : false
             end
@@ -317,6 +321,10 @@ module DLMSTrouble
                 out << [@value].pack("c")
             end
 
+            def to_i
+                @value.dup
+            end
+
             private_class_method
 
                 def self.minValue
@@ -337,7 +345,7 @@ module DLMSTrouble
                 out = opts[:packed] ? "" : axdr_tag
                 out << [@value].pack("C")
             end
-        
+
         end
 
         class DLong < DInteger
@@ -373,7 +381,7 @@ module DLMSTrouble
                 out = opts[:packed] ? "" : axdr_tag
                 out << [@value].pack("q>")
             end
-        
+
         end
 
         class DUnsigned < DInteger
@@ -387,7 +395,7 @@ module DLMSTrouble
             end
                 
         end
-        
+
         class DLongUnsigned < DInteger
 
             @minValue = 0
@@ -397,7 +405,7 @@ module DLMSTrouble
                 out = opts[:packed] ? "" : axdr_tag
                 out << [@value].pack("S>")
             end
-        
+
         end
 
         class DDoubleLongUnsigned < DInteger
@@ -409,7 +417,7 @@ module DLMSTrouble
                 out = opts[:packed] ? "" : axdr_tag
                 out << [@value].pack("L>")
             end
-        
+
         end
 
         class DLong64Unsigned < DInteger
@@ -438,7 +446,7 @@ module DLMSTrouble
 
             def push(value)
 
-                if value.kind_of?(AXDR::DType)
+                if value.kind_of?(Data::DType)
                     if @value.size == 0 or value.class == @value.last.class
                         @value.push(value)                    
                     else
@@ -450,11 +458,13 @@ module DLMSTrouble
                                    
             end
 
+            alias << push
+
             def to_axdr(**opts)
                 out = ""
                 if !opts[:packed]
                     out << axdr_tag
-                    out << AXDR::putSize(@value.size)
+                    out << Data::putSize(@value.size)
                 end
                 @value.each do |sub|
                     out << sub.to_axdr(opts)
@@ -481,7 +491,7 @@ module DLMSTrouble
             end
 
         end
-        
+
         class DCompactArray < DArray
 
             def push(value)
@@ -492,7 +502,7 @@ module DLMSTrouble
             end
 
             def to_axdr(**opts)
-    
+
                 out = opts[:packed] ? ( raise "whoops" ) : axdr_tag
 
                 out << @value.first.putTypeDescription
@@ -503,7 +513,7 @@ module DLMSTrouble
                     data << v.to_axdr(packed: true)
                 end
 
-                out << AXDR::putSize(data.size)
+                out << Data::putSize(data.size)
                 out << data
                 
             end
@@ -522,7 +532,7 @@ module DLMSTrouble
 
             def putTypeDescription
                 out = axdr_tag
-                out << AXDR::putSize(@value.size)
+                out << Data::putSize(@value.size)
                 @value.each do |v|
                     out << v.putTypeDescription
                 end
@@ -534,7 +544,7 @@ module DLMSTrouble
         class DDateTime < DType
 
             attr_reader :year, :month, :dom, :dow, :hour, :min, :sec, :hun, :gmt_offset, :status
-        
+
             def initialize(value=nil, **arg)
 
                 default = {
@@ -679,7 +689,7 @@ module DLMSTrouble
         class DTime < DType
 
             attr_reader :hour, :min, :sec, :hun
-    
+
             def initialize(value=nil, **arg)
 
                 default = {
@@ -741,7 +751,7 @@ module DLMSTrouble
                     out << [data.hun].pack("C")
                 end
             end
-        
+
         end
 
         class DDate < DType
@@ -825,10 +835,10 @@ module DLMSTrouble
 
                 out
             end
-        
+
         end
 
-        
+
         # @param size [Integer]
         # @return [Integer] byte length to encode size
         def self.sizeSize(size)
@@ -879,23 +889,30 @@ module DLMSTrouble
         # @raise [EncodingError]
         def self.getSize!(input)
 
-            size = 0
-            lead = input.slice!(0).unpack("C").first
+            begin
 
-            if lead.nil? or lead == 0x80
-                raise EncodingError
-            elsif lead < 0x80
-                size = lead
-            else
-                input.slice!(0, lead & 0x7f).unpack("C#{lead & 0x7f}").each do |v|
-                    if v.nil?; raise EncodingError end
-                    size = (size << 8) | v            
+                size = 0
+                lead = input.slice!(0).unpack("C").first
+
+                if lead.nil? or lead == 0x80
+                    raise EncodingError
+                elsif lead < 0x80
+                    size = lead
+                else
+                    input.slice!(0, lead & 0x7f).unpack("C#{lead & 0x7f}").each do |v|
+                        if v.nil?; raise EncodingError end
+                        size = (size << 8) | v            
+                    end
                 end
+
+            rescue
+                raise EncodingError
             end
 
             size
                             
         end
-        
+
     end
+        
 end
