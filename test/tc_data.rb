@@ -27,6 +27,7 @@ class TestData < Test::Unit::TestCase
     def test_to_axdr
 
         assert_equal("\x00".force_encoding("ASCII-8BIT"), DNullData.new.to_axdr)
+        assert_equal("\xff".force_encoding("ASCII-8BIT"), DDontCare.new.to_axdr)
 
         assert_equal("\x01\x06\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a".force_encoding("ASCII-8BIT"), 
             DArray.new(
@@ -64,6 +65,7 @@ class TestData < Test::Unit::TestCase
         )
 
         assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), DEnum.new(42).to_axdr)
+        assert_equal("\x0D\x2A".force_encoding("ASCII-8BIT"), DBCD.new(42).to_axdr)
         
         assert_equal("\x03\x00".force_encoding("ASCII-8BIT"), DBoolean.new(false).to_axdr)
         assert_equal("\x03\x01".force_encoding("ASCII-8BIT"), DBoolean.new(true).to_axdr)
@@ -91,16 +93,19 @@ class TestData < Test::Unit::TestCase
         assert_equal("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), DFloat32.new(42.1).to_axdr)
         assert_equal("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT"), DFloat64.new(42.1).to_axdr)
 
-        #assert_equal("\x07\xe0\x01\x01\x05\x00\x00\x00\x00\x80\x00\x08",DDateTime.new(Time.new(2016)).to_axdr)
-
+        assert_equal("\x19\xff\xff\xff\xff\xff\xff\xff\xff\xff\x80\x00\x08".force_encoding("ASCII-8BIT"),DDateTime.new.to_axdr)
+        assert_equal("\x1A\xff\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DDate.new.to_axdr)
+        assert_equal("\x1B\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DTime.new.to_axdr)        
     end
 
     def test_from_axdr!
 
         assert_equal(DNullData.new, Data.from_axdr!("\x00".force_encoding("ASCII-8BIT")))
+        assert_equal(DDontCare.new, Data.from_axdr!("\xFF".force_encoding("ASCII-8BIT")))
 
         assert_equal(DEnum.new(42), Data.from_axdr!("\x16\x2A".force_encoding("ASCII-8BIT")))
-
+        assert_equal(DBCD.new(42), Data.from_axdr!("\x0D\x2A".force_encoding("ASCII-8BIT")))
+        
         assert_equal(DBoolean.new(false), Data.from_axdr!("\x03\x00".force_encoding("ASCII-8BIT")))
         assert_equal(DBoolean.new(true), Data.from_axdr!("\x03\x01".force_encoding("ASCII-8BIT")))
         assert_equal(DBoolean.new(true), Data.from_axdr!("\x03\x1f".force_encoding("ASCII-8BIT")))

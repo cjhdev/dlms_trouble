@@ -46,6 +46,39 @@ class TestDataDSL < Test::Unit::TestCase
         end
         DataDSL.nullData("test")
     end
+    
+    def test_init_dontCare
+        DataDSL.new do
+            dontCare("test")
+        end
+        DataDSL.dontCare("test")
+    end
+
+    def test_init_bcd
+        DataDSL.new do
+            bcd("test")
+        end
+        DataDSL.bcd("test")
+    end
+
+    def test_init_dateTime
+        DataDSL.new do
+            dateTime("test")
+        end
+        DataDSL.dateTime("test")
+    end
+    def test_init_date
+        DataDSL.new do
+            date("test")
+        end
+        DataDSL.date("test")
+    end
+    def test_init_time
+        DataDSL.new do
+            time("test")
+        end
+        DataDSL.time("test")
+    end
 
     def test_init_enum
         DataDSL.new do
@@ -128,6 +161,25 @@ class TestDataDSL < Test::Unit::TestCase
             visibleString("test", size: 1..5)
         end
         DataDSL.visibleString("test", size: 1..5)
+    end
+
+    def test_init_bitString
+        DataDSL.new do
+            bitString("test")
+        end
+        DataDSL.bitString("test")
+    end
+    def test_init_bitString_size
+        DataDSL.new do
+            bitString("test", size: 5)
+        end
+        DataDSL.bitString("test", size: 5)
+    end
+    def test_init_bitString_sizeRange
+        DataDSL.new do
+            bitString("test", size: 1..5)
+        end
+        DataDSL.bitString("test", size: 1..5)
     end
 
     def test_init_octetString

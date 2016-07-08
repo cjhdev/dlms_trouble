@@ -144,6 +144,12 @@ module DLMSTrouble
         def self.nullData(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
+        def self.dontCare(id=nil, **args)
+            self.new.method(__method__).call(id, **args)
+        end
+        def self.bcd(id=nil, **args)
+            self.new.method(__method__).call(id, **args)
+        end
         def self.boolean(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
@@ -189,6 +195,9 @@ module DLMSTrouble
         def self.visibleString(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
+        def self.bitString(id=nil, **args)
+            self.new.method(__method__).call(id, **args)
+        end
         def self.structure(id=nil, **args, &sub)
             self.new.method(__method__).call(id, **args, &sub)
         end
@@ -198,9 +207,26 @@ module DLMSTrouble
         def self.compactArray(id=nil, **args, &sub)
             self.new.method(__method__).call(id, **args, &sub)
         end            
+        def self.dateTime(id=nil, **args)
+            self.new.method(__method__).call(id, **args)
+        end            
+        def self.date(id=nil, **args)
+            self.new.method(__method__).call(id, **args)
+        end            
+        def self.time(id=nil, **args)
+            self.new.method(__method__).call(id, **args)
+        end            
         
 
         def nullData(id=nil, **args)
+            instance_exec(__method__, id, args, nil, &INSERT)
+            self
+        end
+        def dontCare(id=nil, **args)
+            instance_exec(__method__, id, args, nil, &INSERT)
+            self
+        end
+        def bcd(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
@@ -264,6 +290,10 @@ module DLMSTrouble
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
+        def bitString(id=nil, **args)
+            instance_exec(__method__, id, args, nil, &INSERT)
+            self
+        end
         def structure(id=nil, **args, &sub)
             instance_exec(__method__, id, args, sub, &INSERT)
             self
@@ -274,6 +304,18 @@ module DLMSTrouble
         end            
         def compactArray(id=nil, **args, &sub)
             instance_exec(__method__, id, args, sub, &INSERT)
+            self
+        end            
+        def dateTime(id=nil, **args)
+            instance_exec(__method__, id, args, nil, &INSERT)
+            self
+        end            
+        def date(id=nil, **args)
+            instance_exec(__method__, id, args, nil, &INSERT)
+            self
+        end            
+        def time(id=nil, **args)
+            instance_exec(__method__, id, args, nil, &INSERT)
             self
         end            
     

@@ -38,6 +38,7 @@ module DLMSTrouble
             7 => :DFloatingPoint,
             9 => :DOctetString,
             10 => :DVisibleString,
+            12 => :DUFT8String,
             13 => :DBCD,
             15 => :DInteger,
             16 => :DLong,
@@ -51,7 +52,8 @@ module DLMSTrouble
             24 => :DFloat64,
             25 => :DDateTime,
             26 => :DDate,
-            27 => :DTime
+            27 => :DTime,
+            255 => :DDontCare
         }
 
         attr_reader :value
@@ -77,7 +79,11 @@ module DLMSTrouble
         # @return equivalent Data subclass
         def self.mapSymbolToType(symbol)
             s = symbol.to_s
-            s[0] = s[0].upcase
+            if symbol == :bcd
+                s = "BCD"
+            else
+                s[0] = s[0].upcase
+            end
             DLMSTrouble::const_get("D" + s)
         end
 
@@ -127,8 +133,6 @@ module DLMSTrouble
 
                 out = type.new
 
-                puts out.class
-
                 if opts[:packed]
                     size = AXDR::getSize!(opts[:typedef])                        
                 else
@@ -161,10 +165,12 @@ module DLMSTrouble
                     out << from_axdr!(packedInput, opts)
 
                 end
-            when :DNullData
+            when :DNullData, :DDontCare
                 out = type.new
-            when :DVisibleString, :DOctetString
+            when :DVisibleString, :DOctetString, :DUTF8String
                 out = type.new(input.slice!(0, AXDR::getSize!(input)))
+            when :DBitString
+                raise "todo"                
             when :DBoolean
                 case input.slice!(0).unpack("C").first
                 when nil
@@ -174,7 +180,7 @@ module DLMSTrouble
                 else
                     out = type.new(true)
                 end                    
-            when :DInteger
+            when :DInteger, :DBCD
                 out = type.new(input.slice!(0).unpack("c").first)
             when :DLong
                 out = type.new(input.slice!(0,2).unpack("s>").first)
@@ -194,6 +200,12 @@ module DLMSTrouble
                 out = type.new(input.slice!(0,4).unpack("g").first)
             when :DFloat64
                 out = type.new(input.slice!(0,8).unpack("G").first)
+            when :DDateTime
+                raise "todo"
+            when :DDate
+                raise "todo"
+            when :DTime
+                raise "todo"
             else
                 raise
             end
@@ -239,6 +251,46 @@ module DLMSTrouble
 
     end
 
+    class DBitString < Data
+
+        def initialize(value)
+            super(value.to_a)
+        end
+
+        def to_axdr(**opts)
+            out = opts[:packed] ? "" : axdr_tag
+            out << AXDR::putSize(@value.size)
+
+            buf = 0
+            @value.each_with_index do |v,i|
+                if i % 8
+                    buf = 0
+                end
+                if v
+                    buf |= 1 << (i % 8)
+                end
+                if (i % 8) == 7
+                    out << buf
+                end                
+            end
+
+            if @value.size % 8
+                out << buf
+            end
+               
+            out << @value
+        end
+
+        def size
+            @value.size
+        end
+
+        def to_native
+            @value.to_a
+        end
+
+    end
+
     class DOctetString < Data
 
         def initialize(value)
@@ -262,6 +314,9 @@ module DLMSTrouble
     end
 
     class DVisibleString < DOctetString
+    end
+
+    class DUTF8String < DOctetString
     end
 
     class DFloat32 < Data
@@ -317,6 +372,9 @@ module DLMSTrouble
 
     end
 
+    class DDontCare < DNullData
+    end
+
     class DBoolean < Data
 
         def initialize(value)
@@ -364,6 +422,12 @@ module DLMSTrouble
         
     end
 
+    class DBCD < DInteger
+        @minValue = -128
+        @maxValue = 127
+    
+    end
+       
     class DEnum < DInteger
 
         @minValue = 0
@@ -592,6 +656,9 @@ module DLMSTrouble
 
         attr_reader :year, :month, :dom, :dow, :hour, :min, :sec, :hun, :gmt_offset, :status
 
+        # @param value [nil,Time,Hash] time value
+        # @param opt [Hash] init options
+        #
         def initialize(value=nil, **arg)
 
             default = {
@@ -604,7 +671,7 @@ module DLMSTrouble
                 :sec => :undefined,
                 :hun => :undefined,
                 :gmt_offset => :undefined,
-                :status => :undefined
+                :status => [:invalidClockStatus]
             }
         
             if value.kind_of? Time
@@ -625,9 +692,9 @@ module DLMSTrouble
 
                 default.merge!(value)
 
-            else
+            elsif !value.nil?
 
-                raise DataError.new "cannot handle this input"
+                raise DataError.new "cannot handle this value"
                 
             end
 
@@ -642,12 +709,13 @@ module DLMSTrouble
             @sec = default[:sec]
             @hun = default[:hun]
             @gmt_offset = default[:gmt_offset]
+            @status = default[:status]
             
         end
 
         def to_axdr(**opts)
         
-            out = super(opts)
+            out = opts[:packed] ? "" : axdr_tag
 
             if year == :undefined
                 out << [0xffff].pack("S>")
@@ -713,7 +781,8 @@ module DLMSTrouble
                 out << [gmt_offset].pack("S>")
             end
             
-            clockStatus
+            clockStatus = 0
+            
             status.each do |s|
                 case s
                 when :invalidValue
@@ -763,9 +832,9 @@ module DLMSTrouble
 
                 default.merge!(value)
             
-            else
+            elsif !value.nil?
 
-                raise DataError.new "incomplete feature"
+                raise DataError.new "cannot handle this value"
                 
             end
 
@@ -779,27 +848,28 @@ module DLMSTrouble
         end
 
         def to_axdr(**opts)
-            out = super(opts)
+            
+            out = opts[:packed] ? "" : axdr_tag
 
-            if data.hour == :undefined
+            if hour == :undefined
                 out << [0xff].pack("C")
             else
-                out << [data.hour].pack("C")
+                out << [hour].pack("C")
             end
-            if data.min == :undefined
+            if min == :undefined
                 out << [0xff].pack("C")
             else
-                out << [data.min].pack("C")
+                out << [min].pack("C")
             end
-            if data.sec == :undefined
+            if sec == :undefined
                 out << [0xff].pack("C")
             else
-                out << [data.sec].pack("C")
+                out << [sec].pack("C")
             end
-            if data.hun == :undefined
+            if hun == :undefined
                 out << [0xff].pack("C")
             else
-                out << [data.hun].pack("C")
+                out << [hun].pack("C")
             end
         end
 
@@ -816,10 +886,10 @@ module DLMSTrouble
         def initialize(value=nil, **arg)
 
             default = {
-                :year => value.year,
-                :month => value.month,
-                :dom => value.day,
-                :dow => value.wday
+                :year => :undefined,
+                :month => :undefined,
+                :dom => :undefined,
+                :dow => :undefined
             }
         
             if value.kind_of? Time
@@ -831,13 +901,13 @@ module DLMSTrouble
                     :dow => value.wday
                 })
 
-            elsif default.kind_of? Hash
+            elsif value.kind_of? Hash
 
                 default.merge!(value)
             
-            else
+            elsif !value.nil?
 
-                raise DataError.new "incomplete feature"
+                raise DataError.new "cannot handle this value"
                 
             end
 
@@ -851,8 +921,8 @@ module DLMSTrouble
         end
 
         def to_axdr(**opts)
-
-            out = super(opts)
+        
+            out = opts[:packed] ? "" : axdr_tag
 
             if year == :undefined
                 out << [0xffff].pack("S>")
