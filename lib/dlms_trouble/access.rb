@@ -104,14 +104,14 @@ module DLMSTrouble
             out << [TAG_ACCESS_REQUEST, invokeIDAndPriority].pack("CL>")
 
             if @dateTime
-                out << Data::putSize(@dateTime.size)
+                out << AXDR::putSize(@dateTime.size)
                 out << @dateTime
             end
 
-            out << Data::putSize(@requests.size)
+            out << AXDR::putSize(@requests.size)
             out << @requests.each { |request| out << request.to_request_spec }
 
-            out << Data::putSize(@requests.size)
+            out << AXDR::putSize(@requests.size)
             out << @requests.each { |request| out << request.to_request_data }
 
             @status = :sent
@@ -184,9 +184,9 @@ module DLMSTrouble
             # @param time [DateTime, Symbol] :now or a DateTime
             def timeStamp(time)
                 if time == :now
-                    @timeStamp = Data::DDateTime.new(DateTime.now)
+                    @timeStamp = DDateTime.new(DateTime.now)
                 else
-                    @timeStamp = Data::DDateTime.new(time)
+                    @timeStamp = DDateTime.new(time)
                 end
             end
 

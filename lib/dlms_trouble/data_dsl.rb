@@ -8,8 +8,14 @@ module DLMSTrouble
 
         INSERT = Proc.new do |method, id, args, sub|
 
-            element = {:type => method, :id => id}
+            element = {:type => method}
 
+            if id.nil?
+                @anon = true
+            else
+                element[:id] = id.to_s
+            end
+               
             if @stack.size > 0
 
                 case @stack.last[:type]
@@ -22,8 +28,10 @@ module DLMSTrouble
                 when :structure
 
                     @stack.last[:value].each do |v|
-                        if v[:id] == id
-                            raise DataDSLError.new "structure field names must be unique"
+                        if id and !@anon
+                            if v[:id] == id.to_s
+                                raise DataDSLError.new "structure field names must be unique"
+                            end
                         end
                     end
 
@@ -103,7 +111,7 @@ module DLMSTrouble
         attr_reader :type
 
         def initialize(&dsl)
-
+            @anon = false
             @packed = false
             @type = nil
             @stack = []
@@ -113,138 +121,138 @@ module DLMSTrouble
             
         end
 
-        def self.nullData(id, **args)
+        def self.nullData(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.boolean(id, **args)
+        def self.boolean(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.enum(id, **args)
+        def self.enum(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.unsigned(id, **args)
+        def self.unsigned(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.longUnsigned(id, **args)
+        def self.longUnsigned(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.doubleLongUnsigned(id, **args)
+        def self.doubleLongUnsigned(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.long64Unsigned(id, **args)
+        def self.long64Unsigned(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.integer(id, **args)
+        def self.integer(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.long(id, **args)
+        def self.long(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.doubleLong(id, **args)
+        def self.doubleLong(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.long64(id, **args)
+        def self.long64(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.float32(id, **args)
+        def self.float32(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.floatingPoint(id, **args)
+        def self.floatingPoint(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.float64(id, **args)
+        def self.float64(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.octetString(id, **args)
+        def self.octetString(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.visibleString(id, **args)
+        def self.visibleString(id=nil, **args)
             self.new.method(__method__).call(id, **args)
         end
-        def self.structure(id, **args, &sub)
+        def self.structure(id=nil, **args, &sub)
             self.new.method(__method__).call(id, **args, &sub)
         end
-        def self.array(id, **args, &sub)
+        def self.array(id=nil, **args, &sub)
             self.new.method(__method__).call(id, **args, &sub)
         end            
-        def self.compactArray(id, **args, &sub)
+        def self.compactArray(id=nil, **args, &sub)
             self.new.method(__method__).call(id, **args, &sub)
         end            
         
 
-        def nullData(id, **args)
+        def nullData(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def boolean(id, **args)
+        def boolean(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def enum(id, **args)
+        def enum(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def unsigned(id, **args)
+        def unsigned(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def longUnsigned(id, **args)
+        def longUnsigned(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def doubleLongUnsigned(id, **args)
+        def doubleLongUnsigned(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def long64Unsigned(id, **args)
+        def long64Unsigned(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def integer(id, **args)
+        def integer(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def long(id, **args)
+        def long(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def doubleLong(id, **args)
+        def doubleLong(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def long64(id, **args)
+        def long64(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def float32(id, **args)
+        def float32(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def floatingPoint(id, **args)
+        def floatingPoint(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def float64(id, **args)
+        def float64(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def octetString(id, **args)
+        def octetString(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def visibleString(id, **args)
+        def visibleString(id=nil, **args)
             instance_exec(__method__, id, args, nil, &INSERT)
             self
         end
-        def structure(id, **args, &sub)
+        def structure(id=nil, **args, &sub)
             instance_exec(__method__, id, args, sub, &INSERT)
             self
         end
-        def array(id, **args, &sub)
+        def array(id=nil, **args, &sub)
             instance_exec(__method__, id, args, sub, &INSERT)
             self
         end            
-        def compactArray(id, **args, &sub)
+        def compactArray(id=nil, **args, &sub)
             instance_exec(__method__, id, args, sub, &INSERT)
             self
         end            
