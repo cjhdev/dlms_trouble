@@ -116,19 +116,23 @@ module DLMSTrouble
             if !opts[:packed]
                 tag = TAGS[input.slice!(0).unpack("C").first]
             else
-                tag = opts[:typedef].slice!(0).unpack("C").first
+                tag = TAGS[opts[:typedef].slice!(0).unpack("C").first]
             end
 
-            type = Data.const_get(TAGS[tag])
+            
+            type = DLMSTrouble.const_get(tag)
 
             case TAGS[type.tag]
             when :DArray, :DStructure
+
                 out = type.new
+
+                puts out.class
 
                 if opts[:packed]
                     size = AXDR::getSize!(opts[:typedef])                        
                 else
-                    size = DatagetSize!(input)
+                    size = AXDR::getSize!(input)
                 end
                 
                 index = 0
@@ -147,20 +151,20 @@ module DLMSTrouble
 
                 typedef = parseTypeDescription!(input)
                 opts[:packed] = true
-                size = DatagetSize!(input)
+                size = AXDR::getSize!(input)
 
                 packedInput = input.slice!(0, size)
 
                 while packedInput.size != 0 do
 
                     opts[:typedef] = typedef.dup
-                    out << from_axdr!(input, opts)
+                    out << from_axdr!(packedInput, opts)
 
                 end
             when :DNullData
                 out = type.new
             when :DVisibleString, :DOctetString
-                type.new(input.slice!(0, DatagetSize!(input)))
+                out = type.new(input.slice!(0, AXDR::getSize!(input)))
             when :DBoolean
                 case input.slice!(0).unpack("C").first
                 when nil
@@ -218,8 +222,8 @@ module DLMSTrouble
                         index += 1
                     end                    
                 when :DStructure
-                    size = DatagetSize!(typeDescription)
-                    out << DataputSize(size)
+                    size = AXDR::getSize!(typeDescription)
+                    out << AXDR::putSize(size)
                     index = 0
                     while index < size do
                         out << __method__(typeDescription)
@@ -251,6 +255,10 @@ module DLMSTrouble
             @value.size
         end
 
+        def to_native
+            @value.to_s
+        end
+
     end
 
     class DVisibleString < DOctetString
@@ -262,13 +270,13 @@ module DLMSTrouble
             super([value.to_f].pack("g").unpack("g").first)
         end
 
-        def to_f
-            @value.dup
-        end
-
         def to_axdr(**opts)
             out = opts[:packed] ? "" : axdr_tag
             out << [@value].pack("g")
+        end
+
+        def to_native
+            @value.to_f
         end
         
     end
@@ -279,13 +287,13 @@ module DLMSTrouble
             super(value.to_f)
         end
 
-        def to_f
-            @value.dup
-        end
-        
         def to_axdr(**opts)
             out = opts[:packed] ? "" : axdr_tag
             out << [@value].pack("G")
+        end
+
+        def to_native
+            @value.to_f
         end
         
     end
@@ -303,6 +311,10 @@ module DLMSTrouble
             opts[:packed] ? "" : axdr_tag
         end
 
+        def to_native
+            @value
+        end
+
     end
 
     class DBoolean < Data
@@ -313,6 +325,9 @@ module DLMSTrouble
         def to_axdr(**opts)
             out = opts[:packed] ? "" : axdr_tag
             out << [(@value) ? 1 : 0].pack("C")
+        end
+        def to_native
+            @value
         end
         
     end
@@ -334,8 +349,8 @@ module DLMSTrouble
             out << [@value].pack("c")
         end
 
-        def to_i
-            @value.dup
+        def to_native
+            @value.to_i
         end
 
         private_class_method
@@ -463,7 +478,7 @@ module DLMSTrouble
                 if @value.size == 0 or value.class == @value.last.class
                     @value.push(value)                    
                 else
-                    raise DataError.new "element must be same as all other elements"
+                    raise DataError.new "element in array must be same as all other elements in array"
                 end
             else
                 raise DataError.new "element must be a Data subclass"
@@ -509,6 +524,14 @@ module DLMSTrouble
             @value.each_with_index
         end
 
+        def to_native
+            out = []
+            @value.each do |v|
+                out << v.to_native
+            end
+            out
+        end
+
     end
 
     class DCompactArray < DArray
@@ -519,6 +542,8 @@ module DLMSTrouble
             end
             super(value)                
         end
+
+        alias << push
 
         def to_axdr(**opts)
 
@@ -541,6 +566,7 @@ module DLMSTrouble
             raise DataError.new "cannot nest compact array"
         end
 
+        
     end
 
     class DStructure < DArray
@@ -548,6 +574,8 @@ module DLMSTrouble
         def push(value)
             @value.push(value)
         end
+
+        alias << push
 
         def putTypeDescription
             out = axdr_tag
@@ -702,6 +730,10 @@ module DLMSTrouble
             end
             out << [clockStatus].pack("C")
         end
+
+        def to_native
+            self
+        end
             
     end
 
@@ -769,6 +801,10 @@ module DLMSTrouble
             else
                 out << [data.hun].pack("C")
             end
+        end
+
+        def to_native
+            self
         end
 
     end
@@ -853,6 +889,10 @@ module DLMSTrouble
             end
 
             out
+        end
+
+        def to_native
+            self
         end
 
     end

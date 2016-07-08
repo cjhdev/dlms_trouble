@@ -88,25 +88,38 @@ module DLMSTrouble
                 if !input.kind_of?(Data)
 
                     case expected[:type]
-                    when :array, :packedArray, :structure
+                    when :array, :packedArray
 
                         out = Data.mapSymbolToType(expected[:type]).new
-                        
-                        if !input.respond_to? :each
+
+                        if !input.respond_to? :each or !input.respond_to? :size
+                            raise DataValidateError
+                        end
+
+                        input.each do |v|
+                            out.push(_to_data(v, expected[:value].first))
+                        end
+
+                    when :structure
+
+                        out = Data.mapSymbolToType(expected[:type]).new
+
+                        if !input.respond_to? :each_with_index or !input.respond_to? :size
+                            raise DataValidateError
+                        end
+
+                        if input.size != expected[:value].size
                             raise DataValidateError
                         end
 
                         input.each_with_index do |v, i|
-                            if i > expected[:value].size
-                                raise DataTranslateError
-                            end
                             out.push(_to_data(v, expected[:value][i]))
                         end
-                        
+                    
                     else
 
                         begin
-                            out = Data.mapSymbolToType(expected[:type]).new(input)
+                            out = Data.mapSymbolToType(expected[:type]).new(input)                            
                         rescue DataError
                             raise DataValidateError
                         end

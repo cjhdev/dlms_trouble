@@ -63,6 +63,8 @@ class TestData < Test::Unit::TestCase
             ).to_axdr        
         )
 
+        assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), DEnum.new(42).to_axdr)
+        
         assert_equal("\x03\x00".force_encoding("ASCII-8BIT"), DBoolean.new(false).to_axdr)
         assert_equal("\x03\x01".force_encoding("ASCII-8BIT"), DBoolean.new(true).to_axdr)
 
@@ -75,8 +77,13 @@ class TestData < Test::Unit::TestCase
 
         assert_equal("\x0f\xD6".force_encoding("ASCII-8BIT"), DInteger.new(-42).to_axdr)
         assert_equal("\x10\xFF\xD6".force_encoding("ASCII-8BIT"), DLong.new(-42).to_axdr)
+        assert_equal("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DDoubleLong.new(-42).to_axdr)
+        assert_equal("\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DLong64.new(-42).to_axdr)
+
         assert_equal("\x11\x2A".force_encoding("ASCII-8BIT"), DUnsigned.new(42).to_axdr)
         assert_equal("\x12\x00\x2A".force_encoding("ASCII-8BIT"), DLongUnsigned.new(42).to_axdr)
+        assert_equal("\x06\x00\x00\x00\x2A".force_encoding("ASCII-8BIT"), DDoubleLongUnsigned.new(42).to_axdr)
+        assert_equal("\x15\x00\x00\x00\x00\x00\x00\x00\x2A".force_encoding("ASCII-8BIT"), DLong64Unsigned.new(42).to_axdr)
 
         assert_equal("\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DLong64.new(-42).to_axdr)
         assert_equal("\x15\x00\x00\x00\x00\x00\x00\x00\x2A".force_encoding("ASCII-8BIT"), DLong64Unsigned.new(42).to_axdr)
@@ -91,14 +98,29 @@ class TestData < Test::Unit::TestCase
     def test_from_axdr!
 
         assert_equal(DNullData.new, Data.from_axdr!("\x00".force_encoding("ASCII-8BIT")))
+
+        assert_equal(DEnum.new(42), Data.from_axdr!("\x16\x2A".force_encoding("ASCII-8BIT")))
+
         assert_equal(DBoolean.new(false), Data.from_axdr!("\x03\x00".force_encoding("ASCII-8BIT")))
         assert_equal(DBoolean.new(true), Data.from_axdr!("\x03\x01".force_encoding("ASCII-8BIT")))
+        assert_equal(DBoolean.new(true), Data.from_axdr!("\x03\x1f".force_encoding("ASCII-8BIT")))
 
+        assert_equal(DInteger.new(-42), Data.from_axdr!("\x0f\xD6".force_encoding("ASCII-8BIT")))
+        assert_equal(DLong.new(-42), Data.from_axdr!("\x10\xFF\xD6".force_encoding("ASCII-8BIT")))
         assert_equal(DDoubleLong.new(-42), Data.from_axdr!("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT")))
+        assert_equal(DLong64.new(-42), Data.from_axdr!("\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT")))
+
+        assert_equal(DUnsigned.new(42), Data.from_axdr!("\x11\x2A".force_encoding("ASCII-8BIT")))
+        assert_equal(DLongUnsigned.new(42), Data.from_axdr!("\x12\x00\x2A".force_encoding("ASCII-8BIT")))
         assert_equal(DDoubleLongUnsigned.new(42), Data.from_axdr!("\x06\x00\x00\x00\x2A".force_encoding("ASCII-8BIT")))
+        assert_equal(DLong64Unsigned.new(42), Data.from_axdr!("\x15\x00\x00\x00\x00\x00\x00\x00\x2A".force_encoding("ASCII-8BIT")))
+
         assert_equal(DFloatingPoint.new(42.1), Data.from_axdr!("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT")))
         assert_equal(DFloat32.new(42.1), Data.from_axdr!("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT")))
         assert_equal(DFloat64.new(42.1), Data.from_axdr!("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT")))
+
+        assert_equal(DOctetString.new("hello world"), Data.from_axdr!("\x09\x0bhello world"))
+        assert_equal(DVisibleString.new("hello world"), Data.from_axdr!("\x0a\x0bhello world"))
 
         assert_equal(DArray.new(
                 DInteger.new(42),
@@ -135,6 +157,8 @@ class TestData < Test::Unit::TestCase
                 )
             ),
             Data.from_axdr!("\x02\x04\x00\x03\x00\x09\x05hello\x02\x03\x00\x03\x00\x09\x05hello".force_encoding("ASCII-8BIT"))
+
+            
         )
 
     end

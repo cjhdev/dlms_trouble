@@ -40,7 +40,7 @@ class TestDataValidate < Test::Unit::TestCase
         
     end
 
-    def test_evaluate_enum
+    def test_validate_enum
 
         dsl = DataDSL.enum
         data = DEnum.new(42)
@@ -48,7 +48,7 @@ class TestDataValidate < Test::Unit::TestCase
         
     end
 
-    def test_evaluate_octetString
+    def test_validate_octetString
 
         dsl = DataDSL.octetString
         data = DOctetString.new("hello")        
@@ -56,7 +56,7 @@ class TestDataValidate < Test::Unit::TestCase
 
     end
 
-    def test_evaluate_octetString_size
+    def test_validate_octetString_size
 
         dsl = DataDSL.octetString(size: 5)
         
@@ -68,7 +68,7 @@ class TestDataValidate < Test::Unit::TestCase
 
     end
 
-    def test_evaluate_octetString_sizeRange
+    def test_validate_octetString_sizeRange
 
         dsl = DataDSL.octetString(size: 5)
         
@@ -86,7 +86,7 @@ class TestDataValidate < Test::Unit::TestCase
 
     end
 
-    def test_evaluate_array
+    def test_validate_array
 
         dsl = DataDSL.array do
             integer
@@ -97,7 +97,7 @@ class TestDataValidate < Test::Unit::TestCase
 
     end
 
-    def test_evaluate_array_size
+    def test_validate_array_size
 
         dsl = DataDSL.array(size: 5) do
             integer
@@ -111,7 +111,7 @@ class TestDataValidate < Test::Unit::TestCase
 
     end
     
-    def test_evaluate_array_sizeRange
+    def test_validate_array_sizeRange
         
         dsl = DataDSL.array(size: 1..6) do
             integer
@@ -265,9 +265,7 @@ class TestDataValidate < Test::Unit::TestCase
                 )
             )
         )
-
-        expected.inspect
-            
+    
         assert_equal(expected, DataValidate.to_data(input, dsl))
 
     end
