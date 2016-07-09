@@ -17,29 +17,10 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
-require "dlms_trouble/access"
-require "dlms_trouble/dtype"
+module DLMSTrouble
 
-class TestAccessRequestSet < Test::Unit::TestCase
-
-    include DLMSTrouble
-
-    def test_init
-        AccessRequestSet.new(1, "1.2.3.4.5.6", 7, DVisibleString.new("hello world"))        
-    end
-
-    def test_to_request_spec
-        expected = "\x02\x00\x01\x01\x02\x03\x04\x05\x06\x07".force_encoding("ASCII-8BIT")
-        assert_equal(expected, AccessRequestSet.new(1, "1.2.3.4.5.6", 7, DVisibleString.new("hello world")).to_request_spec)    
-    end
-    
-    def test_to_request_data
-
-        expected = "\x0a\x0bhello world".force_encoding("ASCII-8BIT")
-        assert_equal(expected, AccessRequestSet.new(1, "1.2.3.4.5.6", 7, DVisibleString.new("hello world")).to_request_data)
-        
+    class DVisibleString < DOctetString
+        @tag = 10
     end
 
 end
-

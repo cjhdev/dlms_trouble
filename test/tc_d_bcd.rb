@@ -18,28 +18,16 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require "test/unit"
-require "dlms_trouble/access"
 require "dlms_trouble/dtype"
 
-class TestAccessRequestSet < Test::Unit::TestCase
+class TestDBCD < Test::Unit::TestCase
 
     include DLMSTrouble
 
-    def test_init
-        AccessRequestSet.new(1, "1.2.3.4.5.6", 7, DVisibleString.new("hello world"))        
-    end
+    def test_to_axdr
 
-    def test_to_request_spec
-        expected = "\x02\x00\x01\x01\x02\x03\x04\x05\x06\x07".force_encoding("ASCII-8BIT")
-        assert_equal(expected, AccessRequestSet.new(1, "1.2.3.4.5.6", 7, DVisibleString.new("hello world")).to_request_spec)    
-    end
-    
-    def test_to_request_data
+        assert_equal("\x0D\x2A".force_encoding("ASCII-8BIT"), DBCD.new(42).to_axdr)
 
-        expected = "\x0a\x0bhello world".force_encoding("ASCII-8BIT")
-        assert_equal(expected, AccessRequestSet.new(1, "1.2.3.4.5.6", 7, DVisibleString.new("hello world")).to_request_data)
-        
     end
 
 end
-
