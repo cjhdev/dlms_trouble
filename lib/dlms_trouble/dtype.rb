@@ -17,8 +17,6 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-
 module DLMSTrouble
 
     class DTypeError < Exception
@@ -27,21 +25,18 @@ module DLMSTrouble
     class DType
 
         @subs = []
+
+        def self.tagToClass(tag)
+            @subs.select do |sub|
+                sub.tag == tag
+            end.first
+        end
         
         def self.inherited(subclass)
             if self == DType
                 @subs << subclass            
             else                
                 superclass.inherited(subclass)
-            end
-        end
-
-        def self.klassFromTag(tag)
-            result = @subs.select { |sub| sub.tag == tag }.first
-            if result.nil?
-                raise ArgumentError
-            else
-                result
             end
         end
 
@@ -57,11 +52,11 @@ module DLMSTrouble
 
         # @return [Integer]
         def self.tag
-
             if self == DType
                 raise NoMethodError
-            end
-
+            elsif @tag.nil?
+                raise "where is the tag?"
+            end            
             @tag
         end
 
@@ -77,9 +72,22 @@ module DLMSTrouble
             DLMSTrouble::const_get("D" + s)
         end
 
+        def self.from_axdr!(input, **opts)
+            if opts[:packed]
+                begin
+                    tag = input.slice!(0).unpack("C").first
+                rescue
+                    raise DTypeError
+                end
+
+                if tag != @tag
+                    raise DTypeError
+                end
+            end               
+        end
+
         # @return [Integer]
-        def tag
-            
+        def tag            
             self.class.tag
         end
 

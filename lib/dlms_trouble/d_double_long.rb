@@ -31,6 +31,15 @@ module DLMSTrouble
             out = opts[:packed] ? "" : axdr_tag
             out << [@value].pack("l>")
         end
+
+        def self.from_axdr!(input, **opts)            
+            begin
+                super
+                self.new(input.slice!(0,4).unpack("l>").first)
+            rescue
+                raise DTypeError
+            end            
+        end
         
     end
 

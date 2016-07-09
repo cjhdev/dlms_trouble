@@ -49,9 +49,66 @@ module DLMSTrouble
             
         end
 
+        def self.from_axdr!(input, **opts)
+            begin
+                super
+                out = self.new
+                if opts[:packed]
+                    raise DTypeError.new "nested packed array not valid"
+                end
+                typedef = parseTypeDescription!(input)
+                opts[:packed] = true
+                size = AXDR::getSize!(input)
+
+                packedInput = input.slice!(0, size)
+
+                while packedInput.size != 0 do
+
+                    opts[:typedef] = typedef.dup
+                    out << tagToClass(tag).from_axdr!(packedInput, opts)
+                    
+                end
+                out
+            rescue
+                raise DTypeError
+            end
+        end
+
         def put_typeDescription
             raise DTypeError.new "cannot nest compact array"
         end
+
+        private_class_method
+
+            # @return [String] parsed packed array typeDescription
+            def self.parseTypeDescription!(typeDescription)
+
+                out = typeDescription.slice(0)
+                
+                case @klasses[typeDescription.slice!(0).unpack("C").first]
+                when DArray
+                    out << typeDescription.slice(0,2)
+                    size = typeDescription.slice!(0,2).unpack("S>").first
+                    index = 0
+                    while index < size do
+                        out << parseTypeDescription!(typeDescription)
+                        index += 1
+                    end                    
+                when DStructure
+                    size = AXDR::getSize!(typeDescription)
+                    out << AXDR::putSize(size)
+                    index = 0
+                    while index < size do
+                        out << parseTypeDescription!(typeDescription)
+                        index += 1
+                    end           
+                when DCompactArray
+                    raise DTypeError.new "nested packed array not allowed"
+                end
+
+                out
+        
+            end
 
         
     end

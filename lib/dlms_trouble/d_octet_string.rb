@@ -33,6 +33,15 @@ module DLMSTrouble
             out << @value
         end
 
+        def self.from_axdr!(input, **opts)
+            begin
+                super
+                out = self.new(input.slice!(0, AXDR::getSize!(input)))
+            rescue
+                raise DTypeError
+            end
+        end
+
         def size
             @value.size
         end

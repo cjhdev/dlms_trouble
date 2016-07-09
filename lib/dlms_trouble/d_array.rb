@@ -86,11 +86,35 @@ module DLMSTrouble
         end
 
         def to_native
-            out = []
-            @value.each do |v|
+            @value.inject([]).each do |out, v|
                 out << v.to_native
+            end        
+        end
+
+        def self.from_axdr!(input, **opts)
+            begin
+                super
+                out = self.new
+                if opts[:packed]
+                    size = AXDR::getSize!(opts[:typedef])                        
+                else
+                    size = AXDR::getSize!(input)
+                end
+                while out.size < size do
+
+                    if !opts[:packed]
+                        tag = input.slice(0).unpack("C").first                        
+                    else
+                        tag = opts[:typedef].slice!(0).unpack("C").first
+                    end
+
+                    out << tagToClass(tag).from_axdr!(input, opts)
+                    
+                end
+                out
+            rescue
+                raise DTypeError
             end
-            out
         end
 
     end

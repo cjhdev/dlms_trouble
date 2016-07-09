@@ -32,6 +32,15 @@ module DLMSTrouble
             out << [@value].pack("s>")
         end
 
+        def self.from_axdr!(input, **opts)
+            super
+            begin
+                self.new(input.slice!(0,2).unpack("s>").first)
+            rescue
+                raise DTypeError
+            end            
+        end
+
     end
 
 end

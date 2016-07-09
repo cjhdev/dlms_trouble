@@ -26,10 +26,26 @@ module DLMSTrouble
         def initialize(value)
             @value = (value) ? true : false
         end
+        
         def to_axdr(**opts)
             out = opts[:packed] ? "" : axdr_tag
             out << [(@value) ? 1 : 0].pack("C")
         end
+
+        def self.from_axdr!(input, **opts)
+            begin
+                super
+                case input.slice!(0).unpack("C").first
+                when 0
+                    self.new(false)
+                else
+                    self.new(true)
+                end                    
+            rescue
+                raise DTypeError
+            end
+        end
+        
         def to_native
             @value
         end

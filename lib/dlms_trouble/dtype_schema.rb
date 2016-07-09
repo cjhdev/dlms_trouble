@@ -19,11 +19,11 @@
 
 module DLMSTrouble
 
-    class DTypeDSLError < Exception
+    class DTypeSchemaError < Exception
     end
 
     # domain specific language for describing DLMS data structure
-    class DTypeDSL
+    class DTypeSchema
 
         INSERT = Proc.new do |method, id, args, sub|
 
@@ -41,7 +41,7 @@ module DLMSTrouble
                 when :array, :compactArray
 
                     if @stack.last[:value].size == 1
-                        raise DTypeDSLError.new "repeating type already defined"
+                        raise DTypeSchemaError.new "repeating type already defined"
                     end
 
                 when :structure
@@ -49,7 +49,7 @@ module DLMSTrouble
                     @stack.last[:value].each do |v|
                         if id and !@anon
                             if v[:id] == id.to_s
-                                raise DTypeDSLError.new "structure field names must be unique"
+                                raise DTypeSchemaError.new "structure field names must be unique"
                             end
                         end
                     end
@@ -57,11 +57,11 @@ module DLMSTrouble
                 end
 
                 if method == :compactArray and @packed
-                    raise DTypeDSLError.new "cannot nest a compactArray"
+                    raise DTypeSchemaError.new "cannot nest a compactArray"
                 end
                 
                 if @stack.last[:size] and @stack.last[:value].size == @stack.last[:size].max
-                    raise DTypeDSLError.new "exceeded size limit of container (#{@stack.last[:size]} elements)"
+                    raise DTypeSchemaError.new "exceeded size limit of container (#{@stack.last[:size]} elements)"
                 else
                     @stack.last[:value] << element
                 end
@@ -69,7 +69,7 @@ module DLMSTrouble
             else
 
                 if !@type.nil?
-                    raise DTypeDSLError.new "type already defined"
+                    raise DTypeSchemaError.new "type already defined"
                 else
                     @type = element
                 end
@@ -84,7 +84,7 @@ module DLMSTrouble
                     elsif args[:size].kind_of? Range
                         element[:size] = args[:size]
                     else
-                        raise DTypeDSLError
+                        raise DTypeSchemaError
                     end
                 end
 
@@ -97,7 +97,7 @@ module DLMSTrouble
                 @stack << element
                 self.instance_exec(&sub)
                 if @stack.last[:value].size == 0
-                    raise DTypeDSLError
+                    raise DTypeSchemaError
                 end
                 @stack.pop
 
@@ -119,7 +119,7 @@ module DLMSTrouble
                     elsif args[:size].kind_of? Range
                         element[:size] = args[:size]
                     else
-                        raise DTypeDSLError
+                        raise DTypeSchemaError
                     end
                 end
                 

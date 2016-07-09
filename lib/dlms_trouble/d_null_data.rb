@@ -31,6 +31,11 @@ module DLMSTrouble
             opts[:packed] ? "" : axdr_tag
         end
 
+        def self.from_axdr!(input, **opts)
+            super
+            self.new            
+        end
+
         def to_native
             @value
         end

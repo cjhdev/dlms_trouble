@@ -18,7 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'dlms_trouble/dtype'
-require 'dlms_trouble/dtype_dsl'
+require 'dlms_trouble/dtype_schema'
 
 module DLMSTrouble
 
@@ -51,7 +51,7 @@ module DLMSTrouble
                 end
 
                 case expected[:type]
-                when :array, :packedArray
+                when :array, :compactArray
                     if expected[:size].nil? or expected[:size].include?(data.size)
                         data.each do |v|
                             _validate(v, expected[:value].first)
@@ -88,7 +88,7 @@ module DLMSTrouble
                 if !input.kind_of?(DType)
 
                     case expected[:type]
-                    when :array, :packedArray
+                    when :array, :compactArray
 
                         out = DType.mapSymbolToType(expected[:type]).new
 

@@ -18,204 +18,204 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require "test/unit"
-require "dlms_trouble/dtype_dsl"
+require "dlms_trouble/dtype_schema"
 
-class TestDTypeDSL < Test::Unit::TestCase
+class TestDTypeSchema < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_init_noSchema                
-        assert_equal(nil, DTypeDSL.new.type)        
+        assert_equal(nil, DTypeSchema.new.type)        
     end
 
     def test_init_multipleDefinition
-        assert_raise DTypeDSLError do
-            DTypeDSL.new do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.new do
                 nullData("test")
                 nullData("testAgain")
             end
         end
-        assert_raise DTypeDSLError do
-            DTypeDSL.nullData("test").nullData("test")
+        assert_raise DTypeSchemaError do
+            DTypeSchema.nullData("test").nullData("test")
         end
     end
 
     def test_init_nullData
-        DTypeDSL.new do
+        DTypeSchema.new do
             nullData("test")
         end
-        DTypeDSL.nullData("test")
+        DTypeSchema.nullData("test")
     end
     
     def test_init_dontCare
-        DTypeDSL.new do
+        DTypeSchema.new do
             dontCare("test")
         end
-        DTypeDSL.dontCare("test")
+        DTypeSchema.dontCare("test")
     end
 
     def test_init_bcd
-        DTypeDSL.new do
+        DTypeSchema.new do
             bcd("test")
         end
-        DTypeDSL.bcd("test")
+        DTypeSchema.bcd("test")
     end
 
     def test_init_dateTime
-        DTypeDSL.new do
+        DTypeSchema.new do
             dateTime("test")
         end
-        DTypeDSL.dateTime("test")
+        DTypeSchema.dateTime("test")
     end
     def test_init_date
-        DTypeDSL.new do
+        DTypeSchema.new do
             date("test")
         end
-        DTypeDSL.date("test")
+        DTypeSchema.date("test")
     end
     def test_init_time
-        DTypeDSL.new do
+        DTypeSchema.new do
             time("test")
         end
-        DTypeDSL.time("test")
+        DTypeSchema.time("test")
     end
 
     def test_init_enum
-        DTypeDSL.new do
+        DTypeSchema.new do
             enum("test")
         end
-        DTypeDSL.enum("test")        
+        DTypeSchema.enum("test")        
     end
 
     def test_init_boolean
-        DTypeDSL.new do
+        DTypeSchema.new do
             boolean("test")
         end
-        DTypeDSL.boolean("test")
+        DTypeSchema.boolean("test")
     end
 
     def test_init_integer
-        DTypeDSL.new do
+        DTypeSchema.new do
             integer("test")
         end
-        DTypeDSL.integer("test")
+        DTypeSchema.integer("test")
     end
     def test_init_long
-        DTypeDSL.new do
+        DTypeSchema.new do
             long("test")
         end
-        DTypeDSL.long("test")
+        DTypeSchema.long("test")
     end
     def test_init_doubleLong
-        DTypeDSL.new do
+        DTypeSchema.new do
             doubleLong("test")
         end
-        DTypeDSL.doubleLong("test")
+        DTypeSchema.doubleLong("test")
     end
     def test_init_long64
-        DTypeDSL.new do
+        DTypeSchema.new do
             long64("test")
         end
-        DTypeDSL.long64("test")
+        DTypeSchema.long64("test")
     end
     
     def test_init_unsigned
-        DTypeDSL.new do
+        DTypeSchema.new do
             unsigned("test")
         end
-        DTypeDSL.unsigned("test")
+        DTypeSchema.unsigned("test")
     end
     def test_init_longUnsigned
-        DTypeDSL.new do
+        DTypeSchema.new do
             longUnsigned("test")
         end
-        DTypeDSL.longUnsigned("test")
+        DTypeSchema.longUnsigned("test")
     end
     def test_init_doubleLongUnsigned
-        DTypeDSL.new do
+        DTypeSchema.new do
             doubleLongUnsigned("test")
         end
-        DTypeDSL.doubleLongUnsigned("test")
+        DTypeSchema.doubleLongUnsigned("test")
     end    
     def test_init_long64Unsigned
-        DTypeDSL.new do
+        DTypeSchema.new do
             long64Unsigned("test")
         end
-        DTypeDSL.long64Unsigned("test")
+        DTypeSchema.long64Unsigned("test")
     end
 
     def test_init_visibleString
-        DTypeDSL.new do
+        DTypeSchema.new do
             visibleString("test")
         end
-        DTypeDSL.visibleString("test")
+        DTypeSchema.visibleString("test")
     end
     def test_init_visibleString_size
-        DTypeDSL.new do
+        DTypeSchema.new do
             visibleString("test", size: 5)
         end
-        DTypeDSL.visibleString("test", size: 5)
+        DTypeSchema.visibleString("test", size: 5)
     end
     def test_init_visibleString_sizeRange
-        DTypeDSL.new do
+        DTypeSchema.new do
             visibleString("test", size: 1..5)
         end
-        DTypeDSL.visibleString("test", size: 1..5)
+        DTypeSchema.visibleString("test", size: 1..5)
     end
 
     def test_init_bitString
-        DTypeDSL.new do
+        DTypeSchema.new do
             bitString("test")
         end
-        DTypeDSL.bitString("test")
+        DTypeSchema.bitString("test")
     end
     def test_init_bitString_size
-        DTypeDSL.new do
+        DTypeSchema.new do
             bitString("test", size: 5)
         end
-        DTypeDSL.bitString("test", size: 5)
+        DTypeSchema.bitString("test", size: 5)
     end
     def test_init_bitString_sizeRange
-        DTypeDSL.new do
+        DTypeSchema.new do
             bitString("test", size: 1..5)
         end
-        DTypeDSL.bitString("test", size: 1..5)
+        DTypeSchema.bitString("test", size: 1..5)
     end
 
     def test_init_octetString
-        DTypeDSL.new do
+        DTypeSchema.new do
             octetString("test")
         end
-        DTypeDSL.octetString("test")
+        DTypeSchema.octetString("test")
     end
     def test_init_octetString_size
-        DTypeDSL.new do
+        DTypeSchema.new do
             octetString("test", size: 5)
         end
-        DTypeDSL.octetString("test", size: 5)
+        DTypeSchema.octetString("test", size: 5)
     end
     def test_init_octetString_sizeRange
-        DTypeDSL.new do
+        DTypeSchema.new do
             octetString("test", size: 1..5)
         end
-        DTypeDSL.octetString("test", size: 1..5)
+        DTypeSchema.octetString("test", size: 1..5)
     end
 
     def test_init_array
-        DTypeDSL.new do
+        DTypeSchema.new do
             array("test") do
                 integer("repeating")
             end
         end
-        DTypeDSL.array("test") do
+        DTypeSchema.array("test") do
             integer("repeating")
         end
             
     end
     def test_init_array_multiItem
 
-        assert_raise DTypeDSLError do
-            DTypeDSL.new do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.new do
                 array("test") do
                     integer("repeating")
                     integer("invalid")
@@ -223,8 +223,8 @@ class TestDTypeDSL < Test::Unit::TestCase
             end
         end
 
-        assert_raise DTypeDSLError do
-            DTypeDSL.array("test") do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.array("test") do
                 integer("repeating")
                 integer("invalid")
             end
@@ -232,43 +232,43 @@ class TestDTypeDSL < Test::Unit::TestCase
         
     end
     def test_init_array_size
-        DTypeDSL.new do
+        DTypeSchema.new do
             array("test", size: 5) do
                 integer("repeating")
             end
         end
 
-        DTypeDSL.array("test", size: 5) do
+        DTypeSchema.array("test", size: 5) do
             integer("repeating")
         end
     end
     def test_init_array_sizeRange
-        DTypeDSL.new do
+        DTypeSchema.new do
             array("test", size: 1..5) do
                 integer("repeating")
             end
         end
 
-        DTypeDSL.array("test", size: 1..5) do
+        DTypeSchema.array("test", size: 1..5) do
             integer("repeating")
         end
     end
     
     def test_init_compactArray
-        DTypeDSL.new do
+        DTypeSchema.new do
             compactArray("test") do
                 integer("repeating")
             end
         end
 
-        DTypeDSL.compactArray("test") do
+        DTypeSchema.compactArray("test") do
             integer("repeating")
         end
     end
     def test_init_compactArray_multiItem
 
-        assert_raise DTypeDSLError do
-            DTypeDSL.new do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.new do
                 compactArray("test") do
                     integer("repeating")
                     integer("invalid")
@@ -276,8 +276,8 @@ class TestDTypeDSL < Test::Unit::TestCase
             end
         end
 
-        assert_raise DTypeDSLError do
-            DTypeDSL.compactArray("test") do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.compactArray("test") do
                 integer("repeating")
                 integer("invalid")
             end
@@ -286,8 +286,8 @@ class TestDTypeDSL < Test::Unit::TestCase
     end
     def test_init_compactArray_nestedCompact
 
-        assert_raise DTypeDSLError do
-            DTypeDSL.new do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.new do
                 compactArray("test") do
                     compactArray("invalid") do
                         integer("repeating")
@@ -296,8 +296,8 @@ class TestDTypeDSL < Test::Unit::TestCase
             end
         end
 
-        assert_raise DTypeDSLError do
-            DTypeDSL.compactArray("test") do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.compactArray("test") do
                 compactArray("invalid") do
                     integer("repeating")
                 end
@@ -306,14 +306,14 @@ class TestDTypeDSL < Test::Unit::TestCase
         
     end
     def test_init_compactArray_size
-        DTypeDSL.new do
+        DTypeSchema.new do
             compactArray("test", size: 5) do
                 integer("repeating")
             end
         end
     end
     def test_init_compactArray_sizeRange
-        DTypeDSL.new do
+        DTypeSchema.new do
             compactArray("test", size: 1..5) do
                 integer("repeating")
             end
@@ -321,7 +321,7 @@ class TestDTypeDSL < Test::Unit::TestCase
     end
 
     def test_init_structure
-        DTypeDSL.new do
+        DTypeSchema.new do
             structure("test") do
                 integer("one")
                 long("two")
@@ -332,8 +332,8 @@ class TestDTypeDSL < Test::Unit::TestCase
     end
     def test_init_structure_repeatFieldName
         
-        assert_raise DTypeDSLError do
-            DTypeDSL.new do
+        assert_raise DTypeSchemaError do
+            DTypeSchema.new do
                 structure("test") do
                     integer("one")
                     long("one")                
@@ -341,8 +341,8 @@ class TestDTypeDSL < Test::Unit::TestCase
             end
         end
 
-        assert_raise DTypeDSLError do            
-            DTypeDSL.structure("test") do
+        assert_raise DTypeSchemaError do            
+            DTypeSchema.structure("test") do
                 integer("one")
                 long("one")                
             end            
@@ -352,21 +352,21 @@ class TestDTypeDSL < Test::Unit::TestCase
 
     def test_init_structure_anon
         assert_true(
-            DTypeDSL.structure do
+            DTypeSchema.structure do
                 integer
                 long
             end.anon
         )
 
         assert_true(
-            DTypeDSL.structure("test") do
+            DTypeSchema.structure("test") do
                 integer
                 long
             end.anon
         )
 
         assert_false(
-            DTypeDSL.structure("test") do
+            DTypeSchema.structure("test") do
                 integer("one")
                 long("two")
             end.anon
