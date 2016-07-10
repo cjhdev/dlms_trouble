@@ -17,33 +17,28 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+require 'dlms_trouble/d_integer'
+
 module DLMSTrouble
 
-    class DBoolean < DType
+    class DBoolean < DInteger
 
         @tag = 3
-
-        def initialize(value)
-            @value = (value) ? true : false
-        end
+        @minValue = -128
+        @maxValue = 127
         
+        def initialize(value)
+            case value
+            when 0, nil, false
+                @value = false
+            else
+                @value = true
+            end
+        end
+
         def to_axdr(**opts)
             out = opts[:packed] ? "" : axdr_tag
-            out << [(@value) ? 1 : 0].pack("C")
-        end
-
-        def self.from_axdr!(input, **opts)
-            begin
-                super
-                case input.slice!(0).unpack("C").first
-                when 0
-                    self.new(false)
-                else
-                    self.new(true)
-                end                    
-            rescue
-                raise DTypeError
-            end
+            out << [( (@value) ? 1 : 0 ) ].pack("C")
         end
         
         def to_native

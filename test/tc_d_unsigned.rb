@@ -30,4 +30,11 @@ class TestDUnsigned < Test::Unit::TestCase
         
     end
 
+    def test_from_axdr!
+
+        assert_equal(DUnsigned.new(42), DUnsigned.from_axdr!("\x11\x2A".force_encoding("ASCII-8BIT")))
+        assert_equal(DUnsigned.new(42), DUnsigned.from_axdr!("\x2A".force_encoding("ASCII-8BIT"), "\x11"))
+
+    end
+
 end

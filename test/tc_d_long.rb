@@ -31,4 +31,11 @@ class TestDLong < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DLong.new(-42), DLong.from_axdr!("\x10\xFF\xD6".force_encoding("ASCII-8BIT")))
+        assert_equal(DLong.new(-42), DLong.from_axdr!("\xFF\xD6".force_encoding("ASCII-8BIT"), "\x10"))
+
+    end
+
 end

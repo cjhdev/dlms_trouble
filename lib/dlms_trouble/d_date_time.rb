@@ -169,6 +169,34 @@ module DLMSTrouble
             out << [clockStatus].pack("C")
         end
 
+        def self.from_axdr!(input, typedef=nil)
+            begin
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                else
+                    _tag = input.slice!(0).unpack("C").first
+                end                
+                decoded = input.slice!(0,12).unpack("S>CCCCCCCS>C").each                
+            rescue
+                raise DTypeError.new "input too short while decoding #{self}"
+            end
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
+            end
+            val = {}
+            val[:year] = decoded.next
+            val[:month] = decoded.next
+            val[:dom] = decoded.next
+            val[:dow] = decoded.next
+            val[:hour] = decoded.next
+            val[:min] = decoded.next
+            val[:sec] = decoded.next
+            val[:hun] = decoded.next                   
+            val[:gmt_offset] = decoded.next                   
+            val[:status] = decoded.next                   
+            self.new(val)           
+        end
+
         def to_native
             self
         end

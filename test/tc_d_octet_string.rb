@@ -29,5 +29,12 @@ class TestDOctetString < Test::Unit::TestCase
         assert_equal("\x09\x05hello".force_encoding("ASCII-8BIT"), DOctetString.new("hello").to_axdr)
 
     end
+
+    def test_from_axdr!
+
+        assert_equal(DOctetString.new("hello world"), DOctetString.from_axdr!("\x09\x0bhello world"))
+        assert_equal(DOctetString.new("hello world"), DOctetString.from_axdr!("\x0bhello world", "\x09"))
+
+    end
     
 end

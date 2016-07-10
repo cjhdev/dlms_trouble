@@ -34,7 +34,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_validate_null
 
-        dsl = DTypeDSL.nullData
+        dsl = DTypeSchema.nullData
         data = DNullData.new
         assert_true(DTypeValidate.validate(data, dsl))
         
@@ -42,7 +42,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_validate_enum
 
-        dsl = DTypeDSL.enum
+        dsl = DTypeSchema.enum
         data = DEnum.new(42)
         assert_true(DTypeValidate.validate(data, dsl))
         
@@ -50,7 +50,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_validate_octetString
 
-        dsl = DTypeDSL.octetString
+        dsl = DTypeSchema.octetString
         data = DOctetString.new("hello")        
         assert_true(DTypeValidate.validate(data, dsl))
 
@@ -58,7 +58,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_validate_octetString_size
 
-        dsl = DTypeDSL.octetString(size: 5)
+        dsl = DTypeSchema.octetString(size: 5)
         
         # test the boundary
         assert_raise DTypeValidateError do
@@ -70,7 +70,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_validate_octetString_sizeRange
 
-        dsl = DTypeDSL.octetString(size: 5)
+        dsl = DTypeSchema.octetString(size: 5)
         
         # test the maximum boundary
         assert_raise DTypeValidateError do
@@ -88,7 +88,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_validate_array
 
-        dsl = DTypeDSL.array do
+        dsl = DTypeSchema.array do
             integer
         end
         data = DArray.new(DInteger.new(0),DInteger.new(1),DInteger.new(2),DInteger.new(3),DInteger.new(4),DInteger.new(5))
@@ -99,7 +99,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_validate_array_size
 
-        dsl = DTypeDSL.array(size: 5) do
+        dsl = DTypeSchema.array(size: 5) do
             integer
         end
 
@@ -113,7 +113,7 @@ class TestDTypeValidate < Test::Unit::TestCase
     
     def test_validate_array_sizeRange
         
-        dsl = DTypeDSL.array(size: 1..6) do
+        dsl = DTypeSchema.array(size: 1..6) do
             integer
         end
         
@@ -132,20 +132,20 @@ class TestDTypeValidate < Test::Unit::TestCase
     end
 
     def test_to_data_nullData
-        dsl = DTypeDSL.nullData
+        dsl = DTypeSchema.nullData
         input = nil        
         assert_equal(DNullData.new, DTypeValidate.to_data(input, dsl))
     end
 
     # note this converts from the Ruby definition of boolean (i.e. everything is true, nil or FalseClass is false)
     def test_to_data_boolean
-        dsl = DTypeDSL.boolean
+        dsl = DTypeSchema.boolean
         assert_equal(DBoolean.new(true), DTypeValidate.to_data(true, dsl))
         assert_equal(DBoolean.new(false), DTypeValidate.to_data(false, dsl))
     end
 
     def test_to_data_enum
-        dsl = DTypeDSL.enum
+        dsl = DTypeSchema.enum
         assert_equal(DEnum.new(42), DTypeValidate.to_data(42, dsl))
 
         assert_raise DTypeValidateError do
@@ -157,12 +157,12 @@ class TestDTypeValidate < Test::Unit::TestCase
     end
 
     def test_to_data_octetString
-        dsl = DTypeDSL.octetString
+        dsl = DTypeSchema.octetString
         assert_equal(DOctetString.new("hello"), DTypeValidate.to_data("hello", dsl))
     end
 
     def test_do_data_octetString_sizeRange
-        dsl = DTypeDSL.octetString(size: 1..5)
+        dsl = DTypeSchema.octetString(size: 1..5)
         assert_raise DTypeValidateError do
             DTypeValidate.to_data("", dsl)
         end
@@ -172,13 +172,13 @@ class TestDTypeValidate < Test::Unit::TestCase
     end
 
     def test_to_data_visibleString
-        dsl = DTypeDSL.octetString
+        dsl = DTypeSchema.octetString
         assert_equal(DVisibleString.new("hello"), DTypeValidate.to_data("hello", dsl))
     end
 
     def test_to_data_structure
 
-        dsl = DTypeDSL.structure do
+        dsl = DTypeSchema.structure do
             nullData
             integer
             structure do
@@ -208,7 +208,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_to_data_array
 
-        dsl = DTypeDSL.array do
+        dsl = DTypeSchema.array do
             structure do
                 nullData
                 integer
@@ -268,6 +268,70 @@ class TestDTypeValidate < Test::Unit::TestCase
     
         assert_equal(expected, DTypeValidate.to_data(input, dsl))
 
+    end
+
+    def test_to_data_compactArray
+
+        dsl = DTypeSchema.compactArray do
+            structure do
+                nullData
+                integer
+                structure do
+                    octetString
+                end
+            end
+        end
+
+        input = [        
+            [
+                nil,
+                42,
+                [
+                    "hello"
+                ]
+            ],
+            [
+                nil,
+                42,
+                [
+                    "hello"
+                ]
+            ],
+            [
+                nil,
+                42,
+                [
+                    "hello"
+                ]
+            ]
+        ]
+         
+        expected = DCompactArray.new(
+            DStructure.new(
+                DNullData.new,
+                DInteger.new(42),
+                DStructure.new(
+                    DOctetString.new("hello")
+                )
+            ),
+            DStructure.new(
+                DNullData.new,
+                DInteger.new(42),
+                DStructure.new(
+                    DOctetString.new("hello")
+                )
+            ),
+            DStructure.new(
+                DNullData.new,
+                DInteger.new(42),
+                DStructure.new(
+                    DOctetString.new("hello")
+                )
+            )
+        )
+    
+        assert_equal(expected, DTypeValidate.to_data(input, dsl))
+    
     end
     
 end

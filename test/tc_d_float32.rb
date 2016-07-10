@@ -30,4 +30,11 @@ class TestDFloat32 < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DFloat32.new(42.1), DFloat32.from_axdr!("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT")))
+        assert_equal(DFloat32.new(42.1), DFloat32.from_axdr!("\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), "\x17"))
+
+    end
+
 end

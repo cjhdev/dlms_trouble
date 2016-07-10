@@ -45,6 +45,22 @@ module DLMSTrouble
 
             elsif value.kind_of? Hash
 
+                if val[:hour] == 0xff
+                    val[:hour] = :undefined
+                end
+                
+                if val[:min] == 0xff
+                    val[:min] = :undefined
+                end
+                   
+                if val[:sec] == 0xff
+                    val[:sec] = :undefined
+                end
+
+                if val[:hun] == 0xff
+                    val[:hun] = :undefined
+                end
+            
                 default.merge!(value)
             
             elsif !value.nil?
@@ -86,6 +102,28 @@ module DLMSTrouble
             else
                 out << [hun].pack("C")
             end
+        end
+
+        def self.from_axdr!(input, typedef=nil)
+            begin
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                else
+                    _tag = input.slice!(0).unpack("C").first
+                end                
+                decoded = input.slice!(0,4).unpack("CCCC").each                
+            rescue
+                raise DTypeError.new "input too short while decoding #{self}"
+            end
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
+            end
+            val = {}
+            val[:hour] = decoded.next
+            val[:min] = decoded.next
+            val[:sec] = decoded.next
+            val[:hun] = decoded.next                   
+            self.new(val)           
         end
 
         def to_native

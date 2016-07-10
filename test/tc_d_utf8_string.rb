@@ -26,6 +26,15 @@ class TestDUTF8String < Test::Unit::TestCase
 
     def test_to_axdr
 
+        assert_equal("\x0c\x05world".force_encoding("ASCII-8BIT"), DUTF8String.new("world").to_axdr)
+
+    end
+
+    def test_from_axdr!
+
+        assert_equal(DUTF8String.new("hello world"), DUTF8String.from_axdr!("\x0c\x0bhello world"))
+        assert_equal(DUTF8String.new("hello world"), DUTF8String.from_axdr!("\x0bhello world", "\x0c"))
+
     end
 
 end

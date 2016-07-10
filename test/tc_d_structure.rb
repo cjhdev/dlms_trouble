@@ -41,4 +41,22 @@ class TestDStructure < Test::Unit::TestCase
     
     end
 
+    def test_from_axdr!
+
+        assert_equal(
+            DStructure.new(
+                DNullData.new,
+                DBoolean.new(false),
+                DOctetString.new("hello"),
+                DStructure.new(
+                    DNullData.new,
+                    DBoolean.new(false),
+                    DOctetString.new("hello"),
+                )
+            ),
+            DStructure.from_axdr!("\x02\x04\x00\x03\x00\x09\x05hello\x02\x03\x00\x03\x00\x09\x05hello".force_encoding("ASCII-8BIT"))
+        )
+
+    end
+
 end

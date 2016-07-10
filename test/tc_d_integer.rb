@@ -31,4 +31,11 @@ class TestDInteger < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DInteger.new(-42), DInteger.from_axdr!("\x0f\xD6".force_encoding("ASCII-8BIT")))
+        assert_equal(DInteger.new(-42), DInteger.from_axdr!("\xD6".force_encoding("ASCII-8BIT"), "\x0f"))
+
+    end
+
 end

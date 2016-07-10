@@ -30,4 +30,11 @@ class TestDBCD < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DBCD.new(42), DBCD.from_axdr!("\x0D\x2A".force_encoding("ASCII-8BIT")))
+        assert_equal(DBCD.new(42), DBCD.from_axdr!("\x2A".force_encoding("ASCII-8BIT"), "\x0d"))
+        
+    end
+
 end

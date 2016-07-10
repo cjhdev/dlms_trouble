@@ -45,6 +45,33 @@ module DLMSTrouble
 
             elsif value.kind_of? Hash
 
+                if val[:year] == 0xffff
+                    val[:year] = :undefined
+                end
+                
+                case val[:month]
+                when 0xff
+                    val[:month] = :undefined
+                when 0xfe
+                    val[:month] = :dls_begin
+                when 0xfd
+                    val[:month] = :dls_end                
+                end
+
+                case val[:dom]
+                when 0xff
+                    val[:dom] = :undefined
+                when 0xfe
+                    val[:dom] = :last_dom
+                when 0xfd
+                    val[:dom] = :second_last_dom                    
+                end
+
+                case val[:dow]
+                when 0xff
+                    val[:dow] = :undefined
+                end
+
                 default.merge!(value)
             
             elsif !value.nil?
@@ -101,6 +128,28 @@ module DLMSTrouble
             end
 
             out
+        end
+
+        def self.from_axdr!(input, typedef=nil)
+            begin
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                else
+                    _tag = input.slice!(0).unpack("C").first
+                end                
+                decoded = input.slice!(0,5).unpack("S>CCC").each                
+            rescue
+                raise DTypeError.new "input too short while decoding #{self}"
+            end
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
+            end
+            val = {}
+            val[:year] = decoded.next
+            val[:month] = decoded.next
+            val[:dom] = decoded.next
+            val[:dow] = decoded.next
+            self.new(val)          
         end
 
         def to_native

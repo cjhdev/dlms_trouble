@@ -22,16 +22,20 @@ module DLMSTrouble
     class DTypeError < Exception
     end
 
+    # xDLMS-APDU.Data base type
     class DType
 
         @subs = []
 
+        # @param tag [Integer] xDLMS-APDU.Data tag
+        # @return DType subclass
         def self.tagToClass(tag)
             @subs.select do |sub|
                 sub.tag == tag
             end.first
         end
-        
+
+        # use inherited callback to build up a list of the subclasses
         def self.inherited(subclass)
             if self == DType
                 @subs << subclass            
@@ -50,7 +54,7 @@ module DLMSTrouble
             @value = value            
         end
 
-        # @return [Integer]
+        # @return [Integer] xDLMS-APDU.Data tag of this class
         def self.tag
             if self == DType
                 raise NoMethodError
@@ -60,7 +64,7 @@ module DLMSTrouble
             @tag
         end
 
-        # @param symbol [Symbol]
+        # @param symbol [Symbol] symbol from schema
         # @return equivalent DType subclass
         def self.mapSymbolToType(symbol)
             s = symbol.to_s
@@ -72,26 +76,12 @@ module DLMSTrouble
             DLMSTrouble::const_get("D" + s)
         end
 
-        def self.from_axdr!(input, **opts)
-            if opts[:packed]
-                begin
-                    tag = input.slice!(0).unpack("C").first
-                rescue
-                    raise DTypeError
-                end
-
-                if tag != @tag
-                    raise DTypeError
-                end
-            end               
-        end
-
-        # @return [Integer]
-        def tag            
+        # @return [Integer] xDLMS-APDU.Data tag of this instance
+        def tag             
             self.class.tag
         end
 
-        # @return [String] serialised AXDR tag for this type
+        # @return [String] xDLMS-APDU.Data tag of this instance encoded in axdr
         def axdr_tag
             [tag].pack("C")
         end

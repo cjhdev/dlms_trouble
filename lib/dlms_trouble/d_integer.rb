@@ -26,9 +26,9 @@ module DLMSTrouble
         @maxValue = 127
 
         def initialize(value)
-            super(value.to_i)                
-            if value.to_i < self.class.minValue or value.to_i > self.class.maxValue
-                raise DTypeError.new "valid initialisation value for #{self.class} container must be within range #{self.class.minValue}..#{self.class.maxValue}"
+            super(value.to_i)
+            if !Range.new(self.class.minValue, self.class.maxValue).include? value.to_i
+                raise DTypeError.new "valid initialisation value for #{self.class} must be within range #{self.class.minValue}..#{self.class.maxValue}"
             end            
         end
 
@@ -37,13 +37,21 @@ module DLMSTrouble
             out << [@value].pack("c")
         end
 
-        def self.from_axdr!(input, **opts)
-            super
+        def self.from_axdr!(input, typedef=nil)            
             begin
-                self.new(input.slice!(0).unpack("c").first)
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                else
+                    _tag = input.slice!(0).unpack("C").first
+                end
+                val = input.slice!(0).unpack("c").first
             rescue
-                raise DTypeError
-            end            
+                raise DTypeError.new "input too short while decoding #{self}"
+            end                        
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
+            end
+            self.new(val)            
         end
 
         def to_native

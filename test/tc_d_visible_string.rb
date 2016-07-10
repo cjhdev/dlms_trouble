@@ -30,4 +30,11 @@ class TestDVisibleString < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DVisibleString.new("hello world"), DVisibleString.from_axdr!("\x0a\x0bhello world"))
+        assert_equal(DVisibleString.new("hello world"), DVisibleString.from_axdr!("\x0bhello world", "\x0a"))
+
+    end
+
 end

@@ -30,4 +30,10 @@ class TestDDontCare < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DDontCare.new, DDontCare.from_axdr!("\xff".force_encoding("ASCII-8BIT")))
+        
+    end
+
 end

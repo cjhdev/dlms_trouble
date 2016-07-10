@@ -33,13 +33,25 @@ module DLMSTrouble
             out << @value
         end
 
-        def self.from_axdr!(input, **opts)
+        def self.from_axdr!(input, typedef=nil)
             begin
-                super
-                out = self.new(input.slice!(0, AXDR::getSize!(input)))
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                else
+                    _tag = input.slice!(0).unpack("C").first
+                end
+                size = AXDR::getSize!(input)
+                val = input.slice!(0,size)
+                if val.size != size
+                    raise
+                end                
             rescue
-                raise DTypeError
+                raise DTypeError.new "input too short while decoding #{self}"
+            end                        
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
             end
+            self.new(val)            
         end
 
         def size

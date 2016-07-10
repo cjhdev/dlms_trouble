@@ -17,6 +17,8 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+require 'dlms_trouble/axdr'
+
 module DLMSTrouble
 
     class DCompactArray < DArray
@@ -49,29 +51,34 @@ module DLMSTrouble
             
         end
 
-        def self.from_axdr!(input, **opts)
+        def self.from_axdr!(input)
             begin
-                super
-                out = self.new
-                if opts[:packed]
-                    raise DTypeError.new "nested packed array not valid"
-                end
-                typedef = parseTypeDescription!(input)
-                opts[:packed] = true
-                size = AXDR::getSize!(input)
-
-                packedInput = input.slice!(0, size)
-
-                while packedInput.size != 0 do
-
-                    opts[:typedef] = typedef.dup
-                    out << tagToClass(tag).from_axdr!(packedInput, opts)
-                    
-                end
-                out
+                _tag = input.slice!(0).unpack("C").first                                    
             rescue
-                raise DTypeError
+                raise DTypeError.new "input too short while decoding #{self}"
+            end                        
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
             end
+
+            out = self.new
+
+            typedef = parseTypeDescription!(input)
+
+            _size = AXDR::getSize!(input)
+
+            packedInput = input.slice!(0, _size)
+            if packedInput.size != _size
+                raise DTypeError.new "input too short"
+            end
+
+            while packedInput.size != 0 do
+
+                _tag = typedef.slice(0).unpack("C").first                
+                out << DType::tagToClass(_tag).from_axdr!(packedInput, typedef.dup)
+                
+            end
+            out
         end
 
         def put_typeDescription
@@ -80,34 +87,36 @@ module DLMSTrouble
 
         private_class_method
 
+            # @param input [String] 
             # @return [String] parsed packed array typeDescription
-            def self.parseTypeDescription!(typeDescription)
+            def self.parseTypeDescription!(input)
 
-                out = typeDescription.slice(0)
-                
-                case @klasses[typeDescription.slice!(0).unpack("C").first]
-                when DArray
-                    out << typeDescription.slice(0,2)
-                    size = typeDescription.slice!(0,2).unpack("S>").first
-                    index = 0
-                    while index < size do
-                        out << parseTypeDescription!(typeDescription)
-                        index += 1
-                    end                    
-                when DStructure
-                    size = AXDR::getSize!(typeDescription)
-                    out << AXDR::putSize(size)
-                    index = 0
-                    while index < size do
-                        out << parseTypeDescription!(typeDescription)
-                        index += 1
-                    end           
-                when DCompactArray
-                    raise DTypeError.new "nested packed array not allowed"
+                begin
+
+                    out = input.slice(0)
+
+                    case DType::tagToClass(input.slice!(0).unpack("C").first)
+                    when DArray
+                        _size = input.slice!(0,2).unpack("S>").first
+                        out << AXDR::putSize(_size)
+                        out << parseTypeDescription!(input)                            
+                    when DStructure
+                        _size = AXDR::getSize!(input)
+                        out << AXDR::putSize(_size)
+                        while _size > 0 do
+                            out << parseTypeDescription!(input)
+                            _size -= 1
+                        end           
+                    when DCompactArray
+                        raise DTypeError.new "nested compactArray not allowed"
+                    end
+
+                rescue
+                    raise DTypeError.new "cannot parse compactArray typeDescription"
                 end
 
                 out
-        
+
             end
 
         

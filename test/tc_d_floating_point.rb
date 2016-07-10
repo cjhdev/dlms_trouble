@@ -30,4 +30,11 @@ class TestDFloatingPoint < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DFloatingPoint.new(42.1), DFloatingPoint.from_axdr!("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT")))
+        assert_equal(DFloatingPoint.new(42.1), DFloatingPoint.from_axdr!("\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), "\x07"))
+
+    end
+
 end

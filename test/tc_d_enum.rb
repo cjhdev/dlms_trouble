@@ -30,4 +30,11 @@ class TestDEnum < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DEnum.new(42), DEnum.from_axdr!("\x16\x2A".force_encoding("ASCII-8BIT")))
+        assert_equal(DEnum.new(42), DEnum.from_axdr!("\x2A".force_encoding("ASCII-8BIT"), "\x16"))
+
+    end
+
 end

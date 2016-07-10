@@ -51,5 +51,4 @@ class TestOBIS < Test::Unit::TestCase
         assert_true(OBIS.new("\x01\x02\x03\x04\x05\x06".force_encoding("ASCII-8BIT")).to_s == "1.2.3.4.5.6")
     end
     
-
 end

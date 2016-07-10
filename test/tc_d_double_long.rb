@@ -30,4 +30,11 @@ class TestDDoubleLong < Test::Unit::TestCase
         
     end
 
+    def test_from_axdr!
+
+        assert_equal(DDoubleLong.new(-42), DDoubleLong.from_axdr!("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT")))
+        assert_equal(DDoubleLong.new(-42), DDoubleLong.from_axdr!("\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), "\x05"))
+
+    end
+
 end

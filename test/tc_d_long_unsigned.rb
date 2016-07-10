@@ -30,4 +30,11 @@ class TestDLongUnsigned < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DLongUnsigned.new(42), DLongUnsigned.from_axdr!("\x12\x00\x2A".force_encoding("ASCII-8BIT")))
+        assert_equal(DLongUnsigned.new(42), DLongUnsigned.from_axdr!("\x00\x2A".force_encoding("ASCII-8BIT"), "\x12"))
+
+    end
+
 end

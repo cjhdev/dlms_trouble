@@ -24,7 +24,7 @@ module DLMSTrouble
     class DBCD < DInteger
         @tag = 13
         @minValue = -128
-        @maxValue = 127    
+        @maxValue = 127
     end
     
 end

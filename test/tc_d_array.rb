@@ -39,4 +39,19 @@ class TestDArray < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DArray.new(
+                DInteger.new(42),
+                DInteger.new(42),
+                DInteger.new(42),
+                DInteger.new(42),
+                DInteger.new(42),
+                DInteger.new(42)                
+            ),
+            DArray.from_axdr!("\x01\x06\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a".force_encoding("ASCII-8BIT"))             
+        )
+        
+    end
+
 end

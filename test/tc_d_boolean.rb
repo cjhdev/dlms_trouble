@@ -31,4 +31,16 @@ class TestDBoolean < Test::Unit::TestCase
 
     end
 
+    def test_from_axdr!
+
+        assert_equal(DBoolean.new(false), DBoolean.from_axdr!("\x03\x00".force_encoding("ASCII-8BIT")))
+        assert_equal(DBoolean.new(true), DBoolean.from_axdr!("\x03\x01".force_encoding("ASCII-8BIT")))
+        assert_equal(DBoolean.new(true), DBoolean.from_axdr!("\x03\x1f".force_encoding("ASCII-8BIT")))
+
+        assert_equal(DBoolean.new(false), DBoolean.from_axdr!("\x00".force_encoding("ASCII-8BIT"), "\x03"))
+        assert_equal(DBoolean.new(true), DBoolean.from_axdr!("\x01".force_encoding("ASCII-8BIT"), "\x03"))
+        assert_equal(DBoolean.new(true), DBoolean.from_axdr!("\x1f".force_encoding("ASCII-8BIT"), "\x03"))
+
+    end
+
 end

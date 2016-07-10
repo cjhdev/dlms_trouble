@@ -32,10 +32,41 @@ module DLMSTrouble
         def putTypeDescription
             out = axdr_tag
             out << AXDR::putSize(@value.size)
-            @value.each do |v|
-                out << v.putTypeDescription
+            @value.inject(out) do |acc, v|
+                acc << v.putTypeDescription
+            end            
+        end
+
+        def self.from_axdr!(input, typedef=nil)
+            begin
+                _tag = @tag
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                    _size = AXDR::getSize!(typedef)                        
+                else
+                    _tag = input.slice!(0).unpack("C").first
+                    _size = AXDR::getSize!(input)
+                end                                
+            rescue
+                raise DTypeError.new "input too short while decoding #{self}"
+            end                        
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
             end
+
+            out = self.new
+            
+            while out.size < _size do
+                if typedef                
+                    _tag = typedef.slice(0).unpack("C").first                    
+                else
+                    _tag = input.slice(0).unpack("C").first
+                end
+                out << DType::tagToClass(_tag).from_axdr!(input, typedef)                
+            end
+
             out
+
         end
 
     end

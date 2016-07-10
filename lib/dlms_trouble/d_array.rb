@@ -55,10 +55,9 @@ module DLMSTrouble
                 out << axdr_tag
                 out << AXDR::putSize(@value.size)
             end
-            @value.each do |sub|
-                out << sub.to_axdr(opts)
+            @value.inject(out) do |acc,v|
+                acc << v.to_axdr(opts)
             end
-            out
         end
 
         def putTypeDescription
@@ -66,11 +65,8 @@ module DLMSTrouble
             if @value.size > 0xffff
                 raise DTypeError.new "cannot express TypeDescription for an DArray larger than 0xffff elements"
             end
-            out << [@value.size].pack("S>")                
-            @value.each do |v|
-                out << v.putTypeDescription
-            end
-            out
+            out << [@value.size].pack("S>")
+            @value.first.putTypeDescription            
         end
 
         def size
@@ -86,35 +82,45 @@ module DLMSTrouble
         end
 
         def to_native
-            @value.inject([]).each do |out, v|
+            @value.inject([]) do |out, v|
                 out << v.to_native
             end        
         end
 
-        def self.from_axdr!(input, **opts)
+        def self.from_axdr!(input, typedef=nil)
             begin
-                super
-                out = self.new
-                if opts[:packed]
-                    size = AXDR::getSize!(opts[:typedef])                        
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                    _size = AXDR::getSize!(typedef)                        
                 else
-                    size = AXDR::getSize!(input)
-                end
-                while out.size < size do
-
-                    if !opts[:packed]
-                        tag = input.slice(0).unpack("C").first                        
-                    else
-                        tag = opts[:typedef].slice!(0).unpack("C").first
-                    end
-
-                    out << tagToClass(tag).from_axdr!(input, opts)
-                    
-                end
-                out
+                    _tag = input.slice!(0).unpack("C").first
+                    _size = AXDR::getSize!(input)
+                end                                
             rescue
-                raise DTypeError
+                raise DTypeError.new "input too short while decoding #{self}"
+            end                        
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
             end
+
+            out = self.new
+
+            while out.size < _size do
+                if typedef
+                    _tag = typedef.slice(0).unpack("C").first
+                    if out.size == (_size - 1)
+                        out << DType::tagToClass(_tag).from_axdr!(input, typedef)
+                    else
+                        out << DType::tagToClass(_tag).from_axdr!(input, typedef.dup)
+                    end                    
+                else
+                    _tag = input.slice(0).unpack("C").first
+                    out << DType::tagToClass(_tag).from_axdr!(input)                
+                end
+            end
+
+            out
+
         end
 
     end
