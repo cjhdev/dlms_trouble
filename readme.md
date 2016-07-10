@@ -1,11 +1,8 @@
 DLMS Trouble
 ============
 
-A Ruby toolkit for working with DLMS/COSEM on the client side.
+A Ruby toolkit for working with DLMS/COSEM.
 
-## Status
-
-Very incomplete. Not very useful.
 
 ## License
 

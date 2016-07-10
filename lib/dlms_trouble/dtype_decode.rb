@@ -30,11 +30,12 @@ module DLMSTrouble
         # @raise [DTypeError]
         # @return DType subclass instances
         def self.from_axdr(input)
-            from_axdr!(input.to_s)            
-        end
-
-        def self.from_axdr!(input)
-            DType.tagToClass(input.slice(0).unpack("C").first).from_axdr!(input)
+            parse = input.to_s
+            begin
+                DType.tagToClass(parse.slice(0).unpack("C").first).from_axdr!(parse)
+            rescue DTypeError
+                STDERR.puts "failed at byte offset #{input.size - parse.size}"
+            end
         end
 
     end
