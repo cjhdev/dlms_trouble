@@ -69,9 +69,9 @@ module DLMSTrouble
                         case expected[:type]
                         when :array, :compactArray
                             if expected[:size].nil? or expected[:size].include?(data.size)
-                                ok = 0
-                                data.each do |v|
-                                    puts "hey"
+                                ok = 0                                        
+                                data.value.each do |v|
+                                    
                                     if _validate(v, expected[:value].first) == true
                                         ok += 1                                    
                                     end
@@ -88,7 +88,7 @@ module DLMSTrouble
                             if expected[:value].size == data.size
                                 ok = 0
                                 exp = expected[:value].each
-                                data.each do |v|
+                                data.value.each do |v|
                                     if _validate(v, exp.next) == true
                                         ok += 1
                                     end

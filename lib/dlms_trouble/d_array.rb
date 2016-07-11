@@ -73,14 +73,6 @@ module DLMSTrouble
             @value.size
         end
 
-        def each
-            @value.each
-        end
-
-        def each_with_index
-            @value.each_with_index
-        end
-
         def to_native
             @value.inject([]) do |out, v|
                 out << v.to_native
