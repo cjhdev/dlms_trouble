@@ -19,8 +19,32 @@
 
 require 'dlms_trouble/obis'
 require 'dlms_trouble/dtype'
-require 'dlms_trouble/dtype_decode'
-require 'dlms_trouble/dtype_schema'
-require 'dlms_trouble/dtype_validate'
-require 'dlms_trouble/access_request'
+require 'dlms_trouble/access_error'
+
+module DLMSTrouble
+
+    class AccessRequestSet
+
+        TAG = 2
+
+        def initialize(classID, instanceID, methodID, data)
+            @classID = classID.to_i
+            @instanceID = OBIS.new(instanceID.to_s)
+            @methodID = methodID
+            @data = data
+        end
+
+        # @return [String]
+        def  to_request_spec
+            [TAG, @classID, @instanceID.to_axdr, @methodID].pack("CS>A#{@instanceID.to_axdr.size}c")
+        end
+
+        # @return [String]
+        def to_request_data
+            @data.to_axdr
+        end
+
+    end
+
+end
 

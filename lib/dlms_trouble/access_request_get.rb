@@ -17,10 +17,42 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
+require 'dlms_trouble/obis'
+require 'dlms_trouble/axdr'
+require 'dlms_trouble/dtype'
+require 'dlms_trouble/access_error'
 
-class TestAccessRequestGet < Test::Unit::TestCase
+module DLMSTrouble
 
-    
+    class AccessRequestGet
+
+        TAG = 1
+
+        def initialize(classID, instanceID, methodID)
+            @classID = classID.to_i
+            @instanceID = OBIS.new(instanceID.to_s)
+            @methodID = methodID    
+        end
+
+        # @return [String]
+        def to_request_spec
+            [TAG, @classID, @instanceID.to_axdr, @methodID].pack("CS>A#{OBIS.size}c")
+        end
+
+        # @return [String]
+        def to_request_data
+            DNullData.new.to_axdr
+        end
+
+=begin
+        def requestfrom_axdr!(axdr)
+            input = axdr.slice!(0).unpack("CS>A#{OBIS.size}c").each
+            if input.next.to_i == TAG
+                self.new(input.next, input.next, input.next)
+            end
+        end
+=end
+
+    end
 
 end

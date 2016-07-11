@@ -64,6 +64,10 @@ module DLMSTrouble
         def to_s
             "#{a}.#{b}.#{c}.#{d}.#{e}.#{f}"
         end
+
+        def self.size
+            6
+        end
         
     end
 

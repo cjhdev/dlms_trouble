@@ -18,7 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require "test/unit"
-require "dlms_trouble/access"
+require "dlms_trouble/access_request_get"
 
 class TestAccessRequestGet < Test::Unit::TestCase
 

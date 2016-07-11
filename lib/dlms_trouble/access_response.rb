@@ -18,9 +18,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'dlms_trouble/obis'
+require 'dlms_trouble/axdr'
 require 'dlms_trouble/dtype'
-require 'dlms_trouble/dtype_decode'
-require 'dlms_trouble/dtype_schema'
-require 'dlms_trouble/dtype_validate'
-require 'dlms_trouble/access_request'
 
+module DLMSTrouble
+
+    class AccessResponse
+
+        TAG = 218
+
+    end
+
+end
