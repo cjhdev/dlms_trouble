@@ -31,6 +31,7 @@ class TestAccessRequest < Test::Unit::TestCase
         assert_true(ar.confirmed?)
         assert_false(ar.breakOnError?)
         assert_false(ar.selfDescribe?)
+        assert_false(ar.highPriority?)
         assert_equal(nil, ar.getTimeStamp)
         assert_equal(0, ar.getInvokeID)
         
@@ -44,6 +45,7 @@ class TestAccessRequest < Test::Unit::TestCase
             confirmed(false)
             breakOnError(true)
             selfDescribe(true)
+            highPriority(true)
             timeStamp(theTime)
             invokeID(42)
 
@@ -52,6 +54,7 @@ class TestAccessRequest < Test::Unit::TestCase
         assert_false(ar.confirmed?)
         assert_true(ar.breakOnError?)
         assert_true(ar.selfDescribe?)
+        assert_true(ar.highPriority?)
         assert_equal(theTime, ar.getTimeStamp)
         assert_equal(42, ar.getInvokeID)
     
@@ -61,11 +64,12 @@ class TestAccessRequest < Test::Unit::TestCase
 
         theTime = Time.now
 
-        ar = AccessRequest.new.confirmed(false).breakOnError(true).selfDescribe(true).timeStamp(theTime).invokeID(42)
+        ar = AccessRequest.new.confirmed(false).breakOnError(true).selfDescribe(true).highPriority(true).timeStamp(theTime).invokeID(42)
             
         assert_false(ar.confirmed?)
         assert_true(ar.breakOnError?)
         assert_true(ar.selfDescribe?)
+        assert_true(ar.highPriority?)
         assert_equal(theTime, ar.getTimeStamp)
         assert_equal(42, ar.getInvokeID)
     

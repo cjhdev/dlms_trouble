@@ -140,6 +140,7 @@ module DLMSTrouble
 
         def highPriority(mode)
             @highPriority = (mode ? true : false)
+            self
         end
 
         def highPriority?
