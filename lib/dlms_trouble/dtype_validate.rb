@@ -27,60 +27,89 @@ module DLMSTrouble
     
     class DTypeValidate
 
-        # Take DType input and validate according to dsl
-        def self.validate(data, dsl)
-            _validate(data, dsl.type)            
+        def initialize(schema)
+            @schema = schema
         end
 
-        # Take mixed native and DType input and convert to valid DType output according to dsl
-        # @raise [DTypeValidateError] input is invalid according to dsl
-        def self.to_data(input, dsl, **opts)
-            _to_data(input, dsl.type)
+        # Take DType input and validate according to schema
+        #
+        # @param data [DType] input objects to validate
+        #
+        # @return [true] data is valid against schema
+        # @return [false] data is not valid against schema
+        def validate(data)
+            _validate(data, @schema.type)            
         end
 
-        private_class_method
+        # Take mixed native and DType input and convert to valid DType output according to schema
+        #
+        # @param input mixed DType and native
+        #
+        # @raise [DTypeValidateError] input is invalid according to schema
+        #
+        # @return [DType] input converted to DType object
+        def to_data(input, **opts)
+            out = _to_data(input, @schema.type)
+            if _validate(out, @schema.type) == false
+                raise DTypeValidateError
+            end
+            out            
+        end
 
-            def self._validate(data, expected)
+        private
 
-                if !data.kind_of?(DType)
-                    raise DTypeValidateError
-                end
+            def _validate(data, expected)
 
-                if data.class != DType.mapSymbolToType(expected[:type])
-                    raise DTypeValidateError.new "expecting instance of #{DType.mapSymbolToType(expected[:type])} but got #{data.class}"
-                end
+                result = false
 
-                case expected[:type]
-                when :array, :compactArray
-                    if expected[:size].nil? or expected[:size].include?(data.size)
-                        data.each do |v|
-                            _validate(v, expected[:value].first)
+                if data.kind_of?(DType)
+                
+                    if data.class == DType.mapSymbolToType(expected[:type])
+
+                        case expected[:type]
+                        when :array, :compactArray
+                            if expected[:size].nil? or expected[:size].include?(data.size)
+                                ok = 0
+                                data.each do |v|
+                                    puts "hey"
+                                    if _validate(v, expected[:value].first) == true
+                                        ok += 1                                    
+                                    end
+                                end
+                                if data.size == ok
+                                    result = true
+                                end
+                            end
+                        when :visibleString, :octetString
+                            if expected[:size].nil? or expected[:size].include?(data.size)
+                                result = true                            
+                            end
+                        when :structure
+                            if expected[:value].size == data.size
+                                ok = 0
+                                exp = expected[:value].each
+                                data.each do |v|
+                                    if _validate(v, exp.next) == true
+                                        ok += 1
+                                    end
+                                end
+                                if expected[:value].size == ok
+                                    result = true
+                                end
+                            end
+                        else
+                            result = true
                         end
-                    else
-                        raise DTypeValidateError
-                    end
-                when :visibleString, :octetString
 
-                    if expected[:size].nil? or expected[:size].include?(data.size)
-                    
-                    else
-                        raise DTypeValidateError
                     end
-                when :structure
-                    if expected[:size].nil? or expected[:size].include?(data.size)
-                        data.each_with_index do |v,i|
-                            _validate(v, expected[:value][i])
-                        end
-                    else
-                        raise DTypeValidateError
-                    end
+
                 end
 
-                true
+                result
                 
             end
 
-            def self._to_data(input, expected, **opts)
+            def _to_data(input, expected, **opts)
 
                 out = nil
 
@@ -92,7 +121,7 @@ module DLMSTrouble
 
                         out = DType.mapSymbolToType(expected[:type]).new
 
-                        if !input.respond_to? :each or !input.respond_to? :size
+                        if !input.respond_to? :each
                             raise DTypeValidateError
                         end
 
@@ -130,8 +159,6 @@ module DLMSTrouble
                 else
                     out = input
                 end
-
-                _validate(out, expected)
 
                 out
 
