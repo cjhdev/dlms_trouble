@@ -43,34 +43,11 @@ module DLMSTrouble
                     :dow => value.wday
                 })
 
+                if default[:dow] == 0
+                    default[:dow] = 7
+                end
+
             elsif value.kind_of? Hash
-
-                if val[:year] == 0xffff
-                    val[:year] = :undefined
-                end
-                
-                case val[:month]
-                when 0xff
-                    val[:month] = :undefined
-                when 0xfe
-                    val[:month] = :dls_begin
-                when 0xfd
-                    val[:month] = :dls_end                
-                end
-
-                case val[:dom]
-                when 0xff
-                    val[:dom] = :undefined
-                when 0xfe
-                    val[:dom] = :last_dom
-                when 0xfd
-                    val[:dom] = :second_last_dom                    
-                end
-
-                case val[:dow]
-                when 0xff
-                    val[:dow] = :undefined
-                end
 
                 default.merge!(value)
             
@@ -81,6 +58,46 @@ module DLMSTrouble
             end
 
             default.merge!(arg)
+
+            case default[:year]
+            when :undefined, 0xffff
+                default[:year] = :undefined
+            end
+
+            case default[:month]
+            when 0xff, :undefined
+                default[:month] = :undefined
+            when 0xfd, :dls_end
+                default[:month] = :dls_end
+            when 0xfe, :dls_begin
+                default[:month] = :dls_begin
+            else
+                if !Range.new(1,12).include? default[:month]
+                    raise DTypeError
+                end
+            end
+
+            case default[:dom]
+            when 0xff, :undefined
+                default[:dom] = :undefined
+            when 0xfd, :last_dom
+                default[:dom] = :last_dom
+            when 0xfe, :second_last_dom
+                default[:dom] = :second_last_dom
+            else
+                if !Range.new(1,31).include? default[:dom]
+                    raise DTypeError
+                end
+            end
+
+            case default[:dow]
+            when 0xff, :undefined
+                default[:dow] = :undefined
+            else
+                if !Range.new(1,7).include? default[:dow]
+                    raise DTypeError
+                end
+            end
 
             @year = default[:year]
             @month = default[:month]

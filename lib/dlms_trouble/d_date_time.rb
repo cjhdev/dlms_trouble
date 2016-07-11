@@ -17,6 +17,8 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+require 'set'
+
 module DLMSTrouble
 
     class DDateTime < DType
@@ -40,7 +42,7 @@ module DLMSTrouble
                 :sec => :undefined,
                 :hun => :undefined,
                 :gmt_offset => :undefined,
-                :status => [:invalidClockStatus]
+                :status => [:invalid_status]
             }
         
             if value.kind_of? Time
@@ -53,14 +55,18 @@ module DLMSTrouble
                     :hour => value.hour,
                     :min => value.min,
                     :sec => value.sec,
-                    :hun => value.usec / 1000,
-                    :gmt_offset => value.gmt_offset                        
+                    :hun => value.usec / 10000,
+                    :gmt_offset => value.gmt_offset / 60                        
                 })
+
+                if default[:dow] == 0
+                    default[:dow] = 7
+                end
 
             elsif value.kind_of? Hash
 
                 default.merge!(value)
-
+                
             elsif !value.nil?
 
                 raise DTypeError.new "cannot handle this value"
@@ -69,6 +75,153 @@ module DLMSTrouble
 
             default.merge!(arg)
 
+            case default[:year]
+            when :undefined, 0xffff
+                default[:year] = :undefined
+            else
+                if !Range.new(0,0xfffe).include? default[:year]
+                    raise DTypeError.new "year is invalid"
+                end                    
+            end
+
+            case default[:month]
+            when 0xff, :undefined
+                default[:month] = :undefined
+            when 0xfd, :dls_end
+                default[:month] = :dls_end
+            when 0xfe, :dls_begin
+                default[:month] = :dls_begin
+            else
+                if !Range.new(1,12).include? default[:month]
+                    raise DTypeError.new "month is invalid"
+                end
+            end
+
+            case default[:dom]
+            when 0xff, :undefined
+                default[:dom] = :undefined
+            when 0xfd, :last_dom
+                default[:dom] = :last_dom
+            when 0xfe, :second_last_dom
+                default[:dom] = :second_last_dom
+            else
+                if !Range.new(1,31).include? default[:dom]
+                    raise DTypeError.new "day of month is invalid"
+                end
+            end
+
+            case default[:dow]
+            when 0xff, :undefined
+                default[:dow] = :undefined
+            else
+                if !Range.new(1,7).include? default[:dow]
+                    raise DTypeError.new "day of week is invalid"
+                end
+            end
+
+            case default[:hour]
+            when :undefined, 0xff
+                default[:hour] = :undefined
+            else
+                if !Range.new(0,23).include? default[:hour]
+                    raise DTypeError.new "hour is invalid"
+                end
+            end
+
+            case default[:min]
+            when :undefined, 0xff
+                default[:min] = :undefined
+            else
+                if !Range.new(0,59).include? default[:min]
+                    raise DTypeError.new "minute is invalid"
+                end
+            end
+
+            case default[:sec]
+            when :undefined, 0xff
+                default[:sec] = :undefined
+            else
+                if !Range.new(0,59).include? default[:sec]
+                    raise DTypeError.new "second is invalid"
+                end
+            end
+
+            case default[:hun]
+            when :undefined, 0xff
+                default[:hun] = :undefined
+            else
+                if !Range.new(0,99).include? default[:hun]
+                    raise DTypeError.new "hundredth is invalid"
+                end
+            end
+
+            case default[:gmt_offset]
+            when :undefined, 0x8000
+                default[:gmt_offset] = :undefined
+            else
+                if !Range.new(-720,720).include? default[:gmt_offset]
+                    raise DTypeError.new "gmt_offset is invalid"
+                end
+            end
+
+            if default[:status].respond_to? :to_i
+
+                status = default[:status].to_i
+                default[:status] = []
+
+                if (status & 0x01) != 0
+                    default[:status] << :invalid_value
+                end
+                if (status & 0x02) != 0
+                    default[:status] << :doubtful_value
+                end
+                if (status & 0x04) != 0
+                    default[:status] << :different_clock_base
+                end
+                if (status & 0x08) != 0
+                    default[:status] << :invalid_status
+                end                
+                if (status & 0x80) != 0
+                    default[:status] << :dls_active
+                end
+                if (status & 0x70) != 0
+                    puts status & 0x70
+                    raise DTypeError.new "status has reserved bits set"
+                end
+
+            elsif default[:status].respond_to? :to_a
+
+                status = default[:status].to_a
+                default[:status] = []
+
+                if status.include? :invalid_value
+                    default[:status] << :invalid_value
+                end
+                if status.include? :doubtful_value
+                    default[:status] << :doubtful_value
+                end
+                if status.include? :different_clock_base
+                    default[:status] << :different_clock_base
+                end
+                if status.include? :invalid_status
+                    default[:status] << :invalid_status
+                end
+                if status.include? :dls_active
+                    default[:status] << :dls_active
+                end
+                    
+            elsif default[:status].is_a? Symbol
+
+                if [:invalid_value, :doubtful_value, :different_clock_base, :invalid_status, :dls_active].include? default[:status]
+                    default[:status] = [default[:status]]
+                else
+                    raise DTypeError.new "cannot recognise status"
+                end
+
+            else
+                raise DTypeError.new "cannot recognise status"
+            end                        
+               
             @year = default[:year]
             @month = default[:month]
             @dom = default[:dom]
@@ -154,15 +307,15 @@ module DLMSTrouble
             
             status.each do |s|
                 case s
-                when :invalidValue
+                when :invalid_value
                     clockStatus |=  0x1
-                when :doubtfulValue
+                when :doubtful_value
                     clockStatus |=  0x2
-                when :differentClockBase
+                when :different_clock_base
                     clockStatus |=  0x4
-                when :invalidClockStatus
+                when :invalid_status
                     clockStatus |= 0x8                            
-                when :dlsActive
+                when :dls_active
                     clockStatus |= 0x80                                    
                 end
             end
@@ -198,7 +351,7 @@ module DLMSTrouble
         end
 
         def to_native
-            self
+            self            
         end
             
     end

@@ -40,27 +40,11 @@ module DLMSTrouble
                     :hour => value.hour,
                     :min => value.min,
                     :sec => value.sec,
-                    :hun => value.usec / 1000
+                    :hun => value.usec / 10000,
                 })
 
             elsif value.kind_of? Hash
 
-                if val[:hour] == 0xff
-                    val[:hour] = :undefined
-                end
-                
-                if val[:min] == 0xff
-                    val[:min] = :undefined
-                end
-                   
-                if val[:sec] == 0xff
-                    val[:sec] = :undefined
-                end
-
-                if val[:hun] == 0xff
-                    val[:hun] = :undefined
-                end
-            
                 default.merge!(value)
             
             elsif !value.nil?
@@ -70,6 +54,42 @@ module DLMSTrouble
             end
 
             default.merge!(arg)
+
+            case default[:hour]
+            when :undefined, 0xff
+                default[:hour] = :undefined
+            else
+                if !Range.new(0,23).include? default[:hour]
+                    raise DTypeError
+                end
+            end
+
+            case default[:min]
+            when :undefined, 0xff
+                default[:min] = :undefined
+            else
+                if !Range.new(0,59).include? default[:min]
+                    raise DTypeError
+                end
+            end
+
+            case default[:sec]
+            when :undefined, 0xff
+                default[:sec] = :undefined
+            else
+                if !Range.new(0,59).include? default[:sec]
+                    raise DTypeError
+                end
+            end
+
+            case default[:hun]
+            when :undefined, 0xff
+                default[:hun] = :undefined
+            else
+                if !Range.new(0,99).include? default[:hun]
+                    raise DTypeError
+                end
+            end
 
             @hour = default[:hour]
             @min = default[:min]

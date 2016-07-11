@@ -24,6 +24,12 @@ class TestDTime < Test::Unit::TestCase
 
     include DLMSTrouble
 
+    def test_init
+
+        DTime.new(Time.now)
+        
+    end
+
     def test_to_axdr
 
         assert_equal("\x1B\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DTime.new.to_axdr)        

@@ -24,6 +24,12 @@ class TestDDate < Test::Unit::TestCase
 
     include DLMSTrouble
 
+    def test_init
+
+        DDate.new(Time.now)
+        
+    end
+
     def test_to_axdr
 
         assert_equal("\x1A\xff\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DDate.new.to_axdr)

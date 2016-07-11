@@ -18,6 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'dlms_trouble/obis'
+require 'dlms_trouble/axdr'
 require 'dlms_trouble/dtype'
 
 module DLMSTrouble
