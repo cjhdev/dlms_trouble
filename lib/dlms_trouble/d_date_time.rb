@@ -185,7 +185,6 @@ module DLMSTrouble
                     default[:status] << :dls_active
                 end
                 if (status & 0x70) != 0
-                    puts status & 0x70
                     raise DTypeError.new "status has reserved bits set"
                 end
 
