@@ -122,7 +122,7 @@ module DLMSTrouble
                         out = DType.mapSymbolToType(expected[:type]).new
 
                         if !input.respond_to? :each
-                            raise DTypeValidateError
+                            raise DTypeValidateError.new "input does not respond to :each method"
                         end
 
                         input.each do |v|
@@ -133,16 +133,18 @@ module DLMSTrouble
 
                         out = DType.mapSymbolToType(expected[:type]).new
 
-                        if !input.respond_to? :each_with_index or !input.respond_to? :size
-                            raise DTypeValidateError
+                        if !input.respond_to? :each or !input.respond_to? :size
+                            raise DTypeValidateError.new "input does not respond to :each and :size methods"
                         end
 
                         if input.size != expected[:value].size
-                            raise DTypeValidateError
+                            raise DTypeValidateError.new "size of input structure is not as expected"
                         end
 
-                        input.each_with_index do |v, i|
-                            out.push(_to_data(v, expected[:value][i]))
+                        exp = expected[:value].each
+
+                        input.each do |v|
+                            out.push(_to_data(v, exp.next))
                         end
                     
                     else
