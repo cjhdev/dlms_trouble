@@ -28,10 +28,10 @@ class TestAccessRequest < Test::Unit::TestCase
 
         ar = AccessRequest.new
 
-        assert_true(ar.confirmed?)
-        assert_false(ar.breakOnError?)
-        assert_false(ar.selfDescribe?)
-        assert_false(ar.highPriority?)
+        assert_equal(true, ar.confirmed?)
+        assert_equal(false, ar.breakOnError?)
+        assert_equal(false, ar.selfDescribe?)
+        assert_equal(false, ar.highPriority?)
         assert_equal(nil, ar.getTimeStamp)
         assert_equal(0, ar.getInvokeID)
         
@@ -51,10 +51,10 @@ class TestAccessRequest < Test::Unit::TestCase
 
         end
 
-        assert_false(ar.confirmed?)
-        assert_true(ar.breakOnError?)
-        assert_true(ar.selfDescribe?)
-        assert_true(ar.highPriority?)
+        assert_equal(false, ar.confirmed?)
+        assert_equal(true, ar.breakOnError?)
+        assert_equal(true, ar.selfDescribe?)
+        assert_equal(true, ar.highPriority?)
         assert_equal(theTime, ar.getTimeStamp)
         assert_equal(42, ar.getInvokeID)
     
@@ -66,10 +66,10 @@ class TestAccessRequest < Test::Unit::TestCase
 
         ar = AccessRequest.new.confirmed(false).breakOnError(true).selfDescribe(true).highPriority(true).timeStamp(theTime).invokeID(42)
             
-        assert_false(ar.confirmed?)
-        assert_true(ar.breakOnError?)
-        assert_true(ar.selfDescribe?)
-        assert_true(ar.highPriority?)
+        assert_equal(false, ar.confirmed?)
+        assert_equal(true, ar.breakOnError?)
+        assert_equal(true, ar.selfDescribe?)
+        assert_equal(true, ar.highPriority?)
         assert_equal(theTime, ar.getTimeStamp)
         assert_equal(42, ar.getInvokeID)
     

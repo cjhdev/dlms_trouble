@@ -28,7 +28,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
         dsl = DTypeSchema.nullData
         data = DNullData.new
-        assert_true(DTypeValidate.new(dsl).validate(data))
+        assert_equal(true,DTypeValidate.new(dsl).validate(data))
         
     end
 
@@ -36,7 +36,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
         dsl = DTypeSchema.enum
         data = DEnum.new(42)
-        assert_true(DTypeValidate.new(dsl).validate(data))
+        assert_equal(true,DTypeValidate.new(dsl).validate(data))
         
     end
 
@@ -44,7 +44,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
         dsl = DTypeSchema.octetString
         data = DOctetString.new("hello")        
-        assert_true(DTypeValidate.new(dsl).validate(data))
+        assert_equal(true,DTypeValidate.new(dsl).validate(data))
 
     end
 
@@ -54,7 +54,7 @@ class TestDTypeValidate < Test::Unit::TestCase
         
         # test the boundary        
         data = DOctetString.new("hello ")
-        assert_false(DTypeValidate.new(dsl).validate(data))
+        assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
     end
 
@@ -64,11 +64,11 @@ class TestDTypeValidate < Test::Unit::TestCase
         
         # test the maximum boundary
         data = DOctetString.new("hello ")
-        assert_false(DTypeValidate.new(dsl).validate(data))
+        assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
         # test the minimum boundary
         data = DOctetString.new("")
-        assert_false(DTypeValidate.new(dsl).validate(data))
+        assert_equal(false, DTypeValidate.new(dsl).validate(data))
 
     end
 
@@ -79,7 +79,7 @@ class TestDTypeValidate < Test::Unit::TestCase
         end
         data = DArray.new(DInteger.new(0),DInteger.new(1),DInteger.new(2),DInteger.new(3),DInteger.new(4),DInteger.new(5))
 
-        assert_true(DTypeValidate.new(dsl).validate(data))
+        assert_equal(true, DTypeValidate.new(dsl).validate(data))
 
     end
 
@@ -91,7 +91,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
         # test boundary
         data = DArray.new(DInteger.new(0),DInteger.new(1),DInteger.new(2),DInteger.new(3),DInteger.new(4),DInteger.new(5),DInteger.new(6))
-        assert_false(DTypeValidate.new(dsl).validate(data))
+        assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
     end
     
@@ -103,11 +103,11 @@ class TestDTypeValidate < Test::Unit::TestCase
         
         # test the maximum boundary        
         data = DArray.new(DInteger.new(0),DInteger.new(1),DInteger.new(2),DInteger.new(3),DInteger.new(4),DInteger.new(5),DInteger.new(6))
-        assert_false(DTypeValidate.new(dsl).validate(data))
+        assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
         # test the minimum boundary
         data = DArray.new
-        assert_false(DTypeValidate.new(dsl).validate(data))
+        assert_equal(false, DTypeValidate.new(dsl).validate(data))
 
     end
 

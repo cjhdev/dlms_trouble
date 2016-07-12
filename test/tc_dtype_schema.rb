@@ -351,21 +351,22 @@ class TestDTypeSchema < Test::Unit::TestCase
     end
 
     def test_init_structure_anon
-        assert_true(
+        assert_equal(true,
             DTypeSchema.structure do
                 integer
                 long
             end.anon
         )
 
-        assert_true(
+        assert_equal(true,
             DTypeSchema.structure("test") do
                 integer
                 long
             end.anon
         )
 
-        assert_false(
+        assert_equal(
+            false,
             DTypeSchema.structure("test") do
                 integer("one")
                 long("two")
