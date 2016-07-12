@@ -14,7 +14,7 @@ An ongoing project to produce a Ruby toolkit for working with DLMS.
 - Schema class for defining attribute/method structure (DTypeSchema)
 - Attribute/method structure validation (DTypeValidate)
 
-DLMS data types map to the following classes:
+XDLMS-APDU.Data types map to the following classes:
 
 | XDLMS-APDU.Data           | Equivalent Class      |
 | --------------------------|-----------------------|
@@ -30,6 +30,9 @@ DLMS data types map to the following classes:
 | `long`                    | DLong                 |
 | `double-long`             | DDoubleLong           |
 | `long64`                  | DLong64               |
+| `floating-point`          | DFloatingPoint        |
+| `float32`                 | DFloat32              |
+| `float64`                 | DFloat64              |
 | `octet-string`            | DOctetString          |
 | `visible-string`          | DVisibleString        |
 | `utf8-string`             | DUTF8String           |
@@ -37,6 +40,9 @@ DLMS data types map to the following classes:
 | `array`                   | DArray                |
 | `compact-array`           | DCompactArray         |
 | `dont-care`               | DDontCare             |
+| `date-time`               | DDateTime             |
+| `date`                    | DDate                 |
+| `time`                    | DTime                 |
 
 
 
