@@ -9,8 +9,9 @@ An ongoing project to produce a Ruby toolkit for working with DLMS.
 
 ### Attribute/Method Data Handling
 
-- Classes to represent XDLMS-APDU.Data types
-- Initialisation from AXDR or equivalent Ruby types
+* Classes to represent XDLMS-APDU.Data types
+..* Initialisation from AXDR or compatible Ruby types
+..* Serialisation of instances to AXDR
 - Schema class for defining attribute/method structure (DTypeSchema)
 - Attribute/method structure validation (DTypeValidate)
 
