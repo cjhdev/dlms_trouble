@@ -37,7 +37,7 @@ DLMS data types map to the following classes:
 | `array`                   | DArray                |
 | `compact-array`           | DCompactArray         |
 | `dont-care`               | DDontCare             |
-|---------------------------|-----------------------|
+
 
 
 ## Examples
