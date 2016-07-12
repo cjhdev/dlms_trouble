@@ -3,6 +3,7 @@ DLMS Trouble
 
 A Ruby toolkit for working with DLMS/COSEM.
 
+[![Build Status](https://travis-ci.org/cjhdev/dlms_trouble.svg?branch=master)](https://travis-ci.org/cjhdev/dlms_trouble)
 
 ## Examples
 
