@@ -26,6 +26,26 @@ class TestDBitString < Test::Unit::TestCase
 
     def test_to_axdr
 
+        assert_equal("\x04\x08\x55".force_encoding("ASCII-8BIT"), DBitString.new(false,true,false,true,false,true,false,true).to_axdr)
+        assert_equal("\x04\x07\x54".force_encoding("ASCII-8BIT"), DBitString.new(false,true,false,true,false,true,false).to_axdr)
+        assert_equal("\x04\x08\x00".force_encoding("ASCII-8BIT"), DBitString.new(false,false,false,false,false,false,false,false).to_axdr)
+        assert_equal("\x04\x09\xff\x00".force_encoding("ASCII-8BIT"), DBitString.new(true,true,true,true,true,true,true,true,false).to_axdr)
+
+    end
+
+    def test_from_axdr!
+
+        assert_equal(DBitString.new(false,true,false,true,false,true,false,true), DBitString.from_axdr!("\x04\x08\x55".force_encoding("ASCII-8BIT")))
+        assert_equal(DBitString.new(false,true,false,true,false,true,false), DBitString.from_axdr!("\x04\x07\x54".force_encoding("ASCII-8BIT")))
+        assert_equal(DBitString.new(false,false,false,false,false,false,false,false), DBitString.from_axdr!("\x04\x08\x00".force_encoding("ASCII-8BIT")))
+        assert_equal(DBitString.new(true,true,true,true,true,true,true,true,false), DBitString.from_axdr!("\x04\x09\xff\x00".force_encoding("ASCII-8BIT")))
+
+        assert_raise DTypeError do
+
+            assert_equal(DBitString.new(false,true,false,true,false,true,false), DBitString.from_axdr!("\x04\x07\x55".force_encoding("ASCII-8BIT")))
+
+        end
+
     end
 
 end

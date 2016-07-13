@@ -23,8 +23,29 @@ module DLMSTrouble
 
         @tag = 4
 
-        def initialize(value)
-            super(value.to_a)
+        def initialize(*value)
+
+            @value = []
+
+            if value.size == 1
+
+                case value.first.class.name
+                when "Array"
+                    value.first.each do |v|
+                        @value << ( v ? true : false )
+                    end                
+                else
+                    @value << ( value ? true : false)
+                end
+
+            else
+
+                value.each do |v|
+                    @value << ( v ? true : false )                    
+                end
+                
+            end
+
         end
 
         def to_axdr(**opts)
@@ -32,23 +53,38 @@ module DLMSTrouble
             out << AXDR::putSize(@value.size)
 
             buf = 0
+            
             @value.each_with_index do |v,i|
-                if i % 8
+
+                case i % 8
+                when 0
                     buf = 0
+                    buf += ( (v == true) ? 0x80 : 0x00)                    
+                when 1
+                    buf += ( (v == true) ? 0x40 : 0x00)
+                when 2
+                    buf += ( (v == true) ? 0x20 : 0x00)
+                when 3
+                    buf += ( (v == true) ? 0x10 : 0x00)
+                when 4
+                    buf += ( (v == true) ? 0x08 : 0x00)
+                when 5
+                    buf += ( (v == true) ? 0x04 : 0x00)
+                when 6
+                    buf += ( (v == true) ? 0x02 : 0x00)                    
+                when 7
+                    buf += ( (v == true) ? 0x01 : 0x00)
+                    out << [buf].pack("C")                
                 end
-                if v
-                    buf |= 1 << (i % 8)
-                end
-                if (i % 8) == 7
-                    out << buf
-                end                
+                    
             end
 
-            if @value.size % 8
-                out << buf
+            if (@value.size % 8) != 0
+                out << [buf].pack("C")
             end
-               
-            out << @value
+
+            out
+            
         end
 
         def size
@@ -57,6 +93,64 @@ module DLMSTrouble
 
         def to_native
             @value.to_a
+        end
+
+        def self.from_axdr!(input, typedef=nil)
+            begin
+                if typedef
+                    _tag = typedef.slice!(0).unpack("C").first
+                else
+                    _tag = input.slice!(0).unpack("C").first
+                end
+                bitSize = AXDR::getSize!(input)
+                byteSize = ( (bitSize / 8 ) + (((bitSize % 8) == 0) ? 0 : 1) )
+                val = input.slice!(0,byteSize).unpack("C#{byteSize}")                
+            rescue
+                raise DTypeError.new "input too short while decoding #{self}"
+            end                        
+            if _tag != @tag
+                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
+            end
+
+            buf = []
+
+            val.each do |v|
+
+                buf << ((v & 0x80) == 0x80) ? true : false
+                buf << ((v & 0x40) == 0x40) ? true : false
+                buf << ((v & 0x20) == 0x20) ? true : false
+                buf << ((v & 0x10) == 0x10) ? true : false
+                buf << ((v & 0x08) == 0x08) ? true : false
+                buf << ((v & 0x04) == 0x04) ? true : false
+                buf << ((v & 0x02) == 0x02) ? true : false
+                buf << ((v & 0x01) == 0x01) ? true : false
+
+            end
+
+            if (bitSize % 8) != 0
+
+                tail = 8 - (bitSize % 8)
+
+                buf.reverse_each do |v|
+
+                    if tail == 0
+                        break
+                    end
+
+                    if v == true
+                        
+                        raise DTypeError.new "padding bits in bit-string must be zero"
+                    end
+
+                    buf.delete_at(buf.size-1)
+                    tail -= 1
+                    
+                end
+
+            end
+
+            self.new(buf)
+            
         end
 
     end

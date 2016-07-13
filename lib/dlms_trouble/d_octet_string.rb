@@ -40,9 +40,9 @@ module DLMSTrouble
                 else
                     _tag = input.slice!(0).unpack("C").first
                 end
-                size = AXDR::getSize!(input)
-                val = input.slice!(0,size)
-                if val.size != size
+                _size = AXDR::getSize!(input)
+                val = input.slice!(0,_size)
+                if val.size != _size
                     raise
                 end                
             rescue
