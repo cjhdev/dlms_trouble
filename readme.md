@@ -34,6 +34,7 @@ XDLMS-APDU.Data types map to the following classes:
 | `floating-point`          | DFloatingPoint        |
 | `float32`                 | DFloat32              |
 | `float64`                 | DFloat64              |
+| `bit-string`              | DBitString            |
 | `octet-string`            | DOctetString          |
 | `visible-string`          | DVisibleString        |
 | `utf8-string`             | DUTF8String           |
