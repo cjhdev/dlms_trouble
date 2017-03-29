@@ -18,7 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require "test/unit"
-require "dlms_trouble/dtype"
+require "dlms_trouble"
 
 class TestBoolean < Test::Unit::TestCase
 
