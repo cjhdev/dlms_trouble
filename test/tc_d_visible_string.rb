@@ -20,20 +20,13 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDVisibleString < Test::Unit::TestCase
+class TestVisibleString < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\x0a\x05world".force_encoding("ASCII-8BIT"), DVisibleString.new("world").to_axdr)
-
-    end
-
-    def test_from_axdr!
-
-        assert_equal(DVisibleString.new("hello world"), DVisibleString.from_axdr!("\x0a\x0bhello world"))
-        assert_equal(DVisibleString.new("hello world"), DVisibleString.from_axdr!("\x0bhello world", "\x0a"))
+        assert_equal("\x0a\x05world".force_encoding("ASCII-8BIT"), DType::VisibleString.new("world").to_axdr)
 
     end
 

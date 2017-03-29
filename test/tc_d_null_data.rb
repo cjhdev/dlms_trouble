@@ -20,20 +20,16 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDNullData < Test::Unit::TestCase
+class TestNullData < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\x00".force_encoding("ASCII-8BIT"), DNullData.new.to_axdr)
+        assert_equal("\x00".force_encoding("ASCII-8BIT"), DType::NullData.new.to_axdr)
 
     end
 
-    def test_from_axdr!
-
-        assert_equal(DNullData.new, DNullData.from_axdr!("\x00".force_encoding("ASCII-8BIT")))
-        
-    end
+    
 
 end

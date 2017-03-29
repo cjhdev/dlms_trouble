@@ -20,21 +20,16 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDFloat32 < Test::Unit::TestCase
+class TestFloat32 < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), DFloat32.new(42.1).to_axdr)
+        assert_equal("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), DType::Float32.new(42.1).to_axdr)
 
     end
 
-    def test_from_axdr!
-
-        assert_equal(DFloat32.new(42.1), DFloat32.from_axdr!("\x17\x42\x28\x66\x66".force_encoding("ASCII-8BIT")))
-        assert_equal(DFloat32.new(42.1), DFloat32.from_axdr!("\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), "\x17"))
-
-    end
+    
 
 end

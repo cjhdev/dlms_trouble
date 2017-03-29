@@ -19,9 +19,9 @@
 
 require 'set'
 
-module DLMSTrouble
+module DLMSTrouble::DType
 
-    class DDateTime < DType
+    class DateTime < DType
 
         @tag = 25
 
@@ -45,7 +45,7 @@ module DLMSTrouble
                 :status => [:invalid_status]
             }
         
-            if value.kind_of? Time
+            if value.kind_of? ::Time
 
                 default.merge!({
                     :year => value.year,
@@ -321,19 +321,11 @@ module DLMSTrouble
             out << [clockStatus].pack("C")
         end
 
-        def self.from_axdr!(input, typedef=nil)
-            begin
-                if typedef
-                    _tag = typedef.slice!(0).unpack("C").first
-                else
-                    _tag = input.slice!(0).unpack("C").first
-                end                
-                decoded = input.slice!(0,12).unpack("S>CCCCCCCS>C").each                
+        def self.from_axdr(input, typedef=nil)
+            begin                
+                decoded = input.read(12).unpack("S>CCCCCCCS>C").each                
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
             end
             val = {}
             val[:year] = decoded.next

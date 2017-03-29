@@ -17,11 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/d_integer'
+module DLMSTrouble::DType
 
-module DLMSTrouble
-
-    class DBCD < DInteger
+    class BCD < Integer
         @tag = 13
         @minValue = -128
         @maxValue = 127

@@ -20,21 +20,16 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDEnum < Test::Unit::TestCase
+class TestEnum < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), DEnum.new(42).to_axdr)
+        assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), DType::Enum.new(42).to_axdr)
 
     end
 
-    def test_from_axdr!
-
-        assert_equal(DEnum.new(42), DEnum.from_axdr!("\x16\x2A".force_encoding("ASCII-8BIT")))
-        assert_equal(DEnum.new(42), DEnum.from_axdr!("\x2A".force_encoding("ASCII-8BIT"), "\x16"))
-
-    end
+    
 
 end

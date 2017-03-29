@@ -20,43 +20,27 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDStructure < Test::Unit::TestCase
+class TestStructure < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
         assert_equal("\x02\x04\x00\x03\x00\x09\x05hello\x02\x03\x00\x03\x00\x09\x05hello".force_encoding("ASCII-8BIT"), 
-            DStructure.new(
-                DNullData.new,
-                DBoolean.new(false),
-                DOctetString.new("hello"),
-                DStructure.new(
-                    DNullData.new,
-                    DBoolean.new(false),
-                    DOctetString.new("hello"),
+            DType::Structure.new(
+                DType::NullData.new,
+                DType::Boolean.new(false),
+                DType::OctetString.new("hello"),
+                DType::Structure.new(
+                    DType::NullData.new,
+                    DType::Boolean.new(false),
+                    DType::OctetString.new("hello"),
                 )
             ).to_axdr        
         )
     
     end
 
-    def test_from_axdr!
 
-        assert_equal(
-            DStructure.new(
-                DNullData.new,
-                DBoolean.new(false),
-                DOctetString.new("hello"),
-                DStructure.new(
-                    DNullData.new,
-                    DBoolean.new(false),
-                    DOctetString.new("hello"),
-                )
-            ),
-            DStructure.from_axdr!("\x02\x04\x00\x03\x00\x09\x05hello\x02\x03\x00\x03\x00\x09\x05hello".force_encoding("ASCII-8BIT"))
-        )
-
-    end
 
 end

@@ -17,10 +17,43 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble::DType
+module DLMSTrouble
 
-    class DontCare < NullData
-        @tag = 255
+    class GeneralSigning
+
+        def initialize(**opts, &body)
+
+            @transactionID = ""
+            @originatorSystemTitle = ""
+            @recipientSystemTitle = nil
+            @dateTime = nil
+            @otherInformation = nil
+            @keyInfo = nil
+            @cipheredContent = nil
+
+        end
+
+        def to_axdr
+
+            
+            
+        end
+
+        def transactionID(id)            
+        end
+        def originatorSystemTitle(title)
+        end
+        def recipientSystemTitle(title)
+        end
+        def dateTime(time)
+        end
+        def otherInformation(info)
+        end
+        def keyInfo(info)
+        end
+        def cipheredContent(info)
+        end
+        
     end
 
 end

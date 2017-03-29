@@ -17,9 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble
+module DLMSTrouble::DType
 
-    class DNullData < DType
+    class NullData < DType
 
         @tag = 0
 
@@ -31,19 +31,7 @@ module DLMSTrouble
             opts[:packed] ? "" : axdr_tag
         end
 
-        def self.from_axdr!(input, typedef=nil)
-            begin
-                if typedef
-                    _tag = typedef.slice!(0).unpack("C").first
-                else
-                    _tag = input.slice!(0).unpack("C").first
-                end                
-            rescue
-                raise DTypeError.new "input too short while decoding #{self}"
-            end
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
-            end                        
+        def self.from_axdr(input, typedef=nil)
             self.new            
         end
 

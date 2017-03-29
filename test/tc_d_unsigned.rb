@@ -20,21 +20,16 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDUnsigned < Test::Unit::TestCase
+class TestUnsigned < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\x11\x2A".force_encoding("ASCII-8BIT"), DUnsigned.new(42).to_axdr)
+        assert_equal("\x11\x2A".force_encoding("ASCII-8BIT"), DType::Unsigned.new(42).to_axdr)
         
     end
 
-    def test_from_axdr!
-
-        assert_equal(DUnsigned.new(42), DUnsigned.from_axdr!("\x11\x2A".force_encoding("ASCII-8BIT")))
-        assert_equal(DUnsigned.new(42), DUnsigned.from_axdr!("\x2A".force_encoding("ASCII-8BIT"), "\x11"))
-
-    end
+    
 
 end

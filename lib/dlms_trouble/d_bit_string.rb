@@ -17,9 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble
+module DLMSTrouble::DType
 
-    class DBitString < DType
+    class BitString < DType
 
         @tag = 4
 
@@ -50,7 +50,7 @@ module DLMSTrouble
 
         def to_axdr(**opts)
             out = opts[:packed] ? "" : axdr_tag
-            out << AXDR::putSize(@value.size)
+            out << DLMSTrouble::AXDR::putSize(@value.size)
 
             buf = 0
             
@@ -95,22 +95,14 @@ module DLMSTrouble
             @value.to_a
         end
 
-        def self.from_axdr!(input, typedef=nil)
+        def self.from_axdr(input)
             begin
-                if typedef
-                    _tag = typedef.slice!(0).unpack("C").first
-                else
-                    _tag = input.slice!(0).unpack("C").first
-                end
-                bitSize = AXDR::getSize!(input)
+                bitSize = DLMSTrouble::AXDR::getSize(input)
                 byteSize = ( (bitSize / 8 ) + (((bitSize % 8) == 0) ? 0 : 1) )
-                val = input.slice!(0,byteSize).unpack("C#{byteSize}")                
+                val = input.read(byteSize).unpack("C#{byteSize}")                
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
             end                        
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
-            end
 
             buf = []
 

@@ -20,38 +20,25 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDArray < Test::Unit::TestCase
+class TestArray < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
         assert_equal("\x01\x06\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a".force_encoding("ASCII-8BIT"), 
-            DArray.new(
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42)                
+            DType::Array.new(
+                DType::Integer.new(42),
+                DType::Integer.new(42),
+                DType::Integer.new(42),
+                DType::Integer.new(42),
+                DType::Integer.new(42),
+                DType::Integer.new(42)                
             ).to_axdr        
         )
 
     end
 
-    def test_from_axdr!
-
-        assert_equal(DArray.new(
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42),
-                DInteger.new(42)                
-            ),
-            DArray.from_axdr!("\x01\x06\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a\x0f\x2a".force_encoding("ASCII-8BIT"))             
-        )
-        
-    end
+    
 
 end

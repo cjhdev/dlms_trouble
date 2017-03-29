@@ -20,21 +20,12 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDBCD < Test::Unit::TestCase
+class TestBCD < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
-
-        assert_equal("\x0D\x2A".force_encoding("ASCII-8BIT"), DBCD.new(42).to_axdr)
-
-    end
-
-    def test_from_axdr!
-
-        assert_equal(DBCD.new(42), DBCD.from_axdr!("\x0D\x2A".force_encoding("ASCII-8BIT")))
-        assert_equal(DBCD.new(42), DBCD.from_axdr!("\x2A".force_encoding("ASCII-8BIT"), "\x0d"))
-        
+        assert_equal("\x0D\x2A".force_encoding("ASCII-8BIT"), DType::BCD.new(42).to_axdr)
     end
 
 end

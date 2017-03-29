@@ -17,11 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/d_integer'
+module DLMSTrouble::DType
 
-module DLMSTrouble
-
-    class DUnsigned < DInteger
+    class Unsigned < Integer
 
         @tag = 17
         @minValue = 0
@@ -32,20 +30,12 @@ module DLMSTrouble
             out << [@value].pack("C")
         end
 
-        def self.from_axdr!(input, typedef=nil)            
+        def self.from_axdr(input, typedef=nil)
             begin
-                if typedef
-                    _tag = typedef.slice!(0).unpack("C").first
-                else
-                    _tag = input.slice!(0).unpack("C").first
-                end
-                val = input.slice!(0).unpack("C").first
+                val = input.read(1).unpack("C").first
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end                        
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
-            end
+            end                                    
             self.new(val)            
         end
                             

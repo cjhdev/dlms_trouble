@@ -20,22 +20,17 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDInteger < Test::Unit::TestCase
+class TestInteger < Test::Unit::TestCase
 
     include DLMSTrouble
 
 
     def test_to_axdr
     
-        assert_equal("\x0f\xD6".force_encoding("ASCII-8BIT"), DInteger.new(-42).to_axdr)
+        assert_equal("\x0f\xD6".force_encoding("ASCII-8BIT"), DType::Integer.new(-42).to_axdr)
 
     end
 
-    def test_from_axdr!
-
-        assert_equal(DInteger.new(-42), DInteger.from_axdr!("\x0f\xD6".force_encoding("ASCII-8BIT")))
-        assert_equal(DInteger.new(-42), DInteger.from_axdr!("\xD6".force_encoding("ASCII-8BIT"), "\x0f"))
-
-    end
+    
 
 end

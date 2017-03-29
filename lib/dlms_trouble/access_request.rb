@@ -19,7 +19,6 @@
 
 require 'dlms_trouble/obis'
 require 'dlms_trouble/axdr'
-require 'dlms_trouble/dtype'
 require 'dlms_trouble/access_error'
 require 'dlms_trouble/access_request_set'
 require 'dlms_trouble/access_request_get'
@@ -28,14 +27,14 @@ module DLMSTrouble
 
     class AccessRequest
 
-        TAG = 217
+        @tag = 217
         
         def initialize(**args, &body)
 
             @confirmed = true
             @breakOnError = false
             @selfDescribe = false
-            @timeStamp = nil
+            @dateTime = nil
             @invokeID = 0
             @highPriority = false
             @requests = []
@@ -57,11 +56,11 @@ module DLMSTrouble
                 ( @confirmed ? (0x1 << 30) : 0x0 ) |
                 ( @highPriority ? (0x1 << 31) : 0x0 )
                 
-            out << [TAG, invokeIDAndPriority].pack("CL>")
+            out << [tag, invokeIDAndPriority].pack("CL>")
 
-            if @timeStamp
-                out << AXDR::putSize(@timeStamp.to_axdr.size)
-                out << @timeStamp.to_axdr
+            if @dateTime
+                out << AXDR::putSize(@dateTime.to_axdr.size)
+                out << @dateTime.to_axdr
             else
                 out << AXDR::putSize(0)
             end
@@ -85,13 +84,13 @@ module DLMSTrouble
         end
 
         def set(classID, instanceID, methodID, data)
-            @requests << AccessRequestSet.new(classID, instanceID, methodID)
+            @requests << AccessRequestSet.new(classID, instanceID, methodID, data)
             self
         end
 
         # configure invokeID
         # @param id [integer, symbol]            
-        def invokeID(id)
+        def setInvokeID(id)
 
             if id == :generate
                 @invokeID = 0
@@ -101,7 +100,7 @@ module DLMSTrouble
             self
         end
 
-        def getInvokeID
+        def invokeID
             @invokeID
         end
 
@@ -147,22 +146,30 @@ module DLMSTrouble
             @highPriority
         end
 
-        # configure timestamp field (default is empty)
+        # configure dateTime field (default is empty)
         # @param time [DateTime, Symbol] :now or a DateTime
-        def timeStamp(time)
-            @timeStamp = time
+        def setDateTime(time)
+            @dateTime = time
             if time
                 begin
-                    DDateTime.new(time)
+                    DType::DateTime.new(time)
                 rescue ex
-                    raise AccessError.new "timestamp failed for reason: #{ex}"
+                    raise AccessError.new "dateTime failed for reason: #{ex}"
                 end                
             end
             self               
         end
 
-        def getTimeStamp
-            @timeStamp
+        def dateTime
+            @dateTime
+        end
+
+        def self.tag
+            @tag
+        end
+
+        def tag
+            self.class.tag
         end
 
     end

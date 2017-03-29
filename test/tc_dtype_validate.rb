@@ -27,7 +27,7 @@ class TestDTypeValidate < Test::Unit::TestCase
     def test_validate_null
 
         dsl = DTypeSchema.nullData
-        data = DNullData.new
+        data = DType::NullData.new
         assert_equal(true,DTypeValidate.new(dsl).validate(data))
         
     end
@@ -35,7 +35,7 @@ class TestDTypeValidate < Test::Unit::TestCase
     def test_validate_enum
 
         dsl = DTypeSchema.enum
-        data = DEnum.new(42)
+        data = DType::Enum.new(42)
         assert_equal(true,DTypeValidate.new(dsl).validate(data))
         
     end
@@ -43,7 +43,7 @@ class TestDTypeValidate < Test::Unit::TestCase
     def test_validate_octetString
 
         dsl = DTypeSchema.octetString
-        data = DOctetString.new("hello")        
+        data = DType::OctetString.new("hello")        
         assert_equal(true,DTypeValidate.new(dsl).validate(data))
 
     end
@@ -53,7 +53,7 @@ class TestDTypeValidate < Test::Unit::TestCase
         dsl = DTypeSchema.octetString(size: 5)
         
         # test the boundary        
-        data = DOctetString.new("hello ")
+        data = DType::OctetString.new("hello ")
         assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
     end
@@ -63,11 +63,11 @@ class TestDTypeValidate < Test::Unit::TestCase
         dsl = DTypeSchema.octetString(size: 5)
         
         # test the maximum boundary
-        data = DOctetString.new("hello ")
+        data = DType::OctetString.new("hello ")
         assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
         # test the minimum boundary
-        data = DOctetString.new("")
+        data = DType::OctetString.new("")
         assert_equal(false, DTypeValidate.new(dsl).validate(data))
 
     end
@@ -77,7 +77,7 @@ class TestDTypeValidate < Test::Unit::TestCase
         dsl = DTypeSchema.array do
             integer
         end
-        data = DArray.new(DInteger.new(0),DInteger.new(1),DInteger.new(2),DInteger.new(3),DInteger.new(4),DInteger.new(5))
+        data = DType::Array.new(DType::Integer.new(0),DType::Integer.new(1),DType::Integer.new(2),DType::Integer.new(3),DType::Integer.new(4),DType::Integer.new(5))
 
         assert_equal(true, DTypeValidate.new(dsl).validate(data))
 
@@ -90,7 +90,7 @@ class TestDTypeValidate < Test::Unit::TestCase
         end
 
         # test boundary
-        data = DArray.new(DInteger.new(0),DInteger.new(1),DInteger.new(2),DInteger.new(3),DInteger.new(4),DInteger.new(5),DInteger.new(6))
+        data = DType::Array.new(DType::Integer.new(0),DType::Integer.new(1),DType::Integer.new(2),DType::Integer.new(3),DType::Integer.new(4),DType::Integer.new(5),DType::Integer.new(6))
         assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
     end
@@ -102,11 +102,11 @@ class TestDTypeValidate < Test::Unit::TestCase
         end
         
         # test the maximum boundary        
-        data = DArray.new(DInteger.new(0),DInteger.new(1),DInteger.new(2),DInteger.new(3),DInteger.new(4),DInteger.new(5),DInteger.new(6))
+        data = DType::Array.new(DType::Integer.new(0),DType::Integer.new(1),DType::Integer.new(2),DType::Integer.new(3),DType::Integer.new(4),DType::Integer.new(5),DType::Integer.new(6))
         assert_equal(false, DTypeValidate.new(dsl).validate(data))
         
         # test the minimum boundary
-        data = DArray.new
+        data = DType::Array.new
         assert_equal(false, DTypeValidate.new(dsl).validate(data))
 
     end
@@ -114,19 +114,19 @@ class TestDTypeValidate < Test::Unit::TestCase
     def test_to_data_nullData
         dsl = DTypeSchema.nullData
         input = nil        
-        assert_equal(DNullData.new, DTypeValidate.new(dsl).to_data(input))
+        assert_equal(DType::NullData.new, DTypeValidate.new(dsl).to_data(input))
     end
 
     # note this converts from the Ruby definition of boolean (i.e. everything is true, nil or FalseClass is false)
     def test_to_data_boolean
         dsl = DTypeSchema.boolean
-        assert_equal(DBoolean.new(true), DTypeValidate.new(dsl).to_data(true))
-        assert_equal(DBoolean.new(false), DTypeValidate.new(dsl).to_data(false))
+        assert_equal(DType::Boolean.new(true), DTypeValidate.new(dsl).to_data(true))
+        assert_equal(DType::Boolean.new(false), DTypeValidate.new(dsl).to_data(false))
     end
 
     def test_to_data_enum
         dsl = DTypeSchema.enum
-        assert_equal(DEnum.new(42), DTypeValidate.new(dsl).to_data(42))
+        assert_equal(DType::Enum.new(42), DTypeValidate.new(dsl).to_data(42))
 
         assert_raise DTypeValidateError do
             DTypeValidate.new(dsl).to_data(-1)            
@@ -138,7 +138,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_to_data_octetString
         dsl = DTypeSchema.octetString
-        assert_equal(DOctetString.new("hello"), DTypeValidate.new(dsl).to_data("hello"))
+        assert_equal(DType::OctetString.new("hello"), DTypeValidate.new(dsl).to_data("hello"))
     end
 
     def test_do_data_octetString_sizeRange
@@ -153,7 +153,7 @@ class TestDTypeValidate < Test::Unit::TestCase
 
     def test_to_data_visibleString
         dsl = DTypeSchema.octetString
-        assert_equal(DVisibleString.new("hello"), DTypeValidate.new(dsl).to_data("hello"))
+        assert_equal(DType::VisibleString.new("hello"), DTypeValidate.new(dsl).to_data("hello"))
     end
 
     def test_to_data_structure
@@ -174,11 +174,11 @@ class TestDTypeValidate < Test::Unit::TestCase
             ]
         ]
 
-        expected = DStructure.new(
-            DNullData.new,
-            DInteger.new(42),
-            DStructure.new(
-                DOctetString.new("hello")
+        expected = DType::Structure.new(
+            DType::NullData.new,
+            DType::Integer.new(42),
+            DType::Structure.new(
+                DType::OctetString.new("hello")
             )
         )
             
@@ -222,26 +222,26 @@ class TestDTypeValidate < Test::Unit::TestCase
             ]
         ]
          
-        expected = DArray.new(
-            DStructure.new(
-                DNullData.new,
-                DInteger.new(42),
-                DStructure.new(
-                    DOctetString.new("hello")
+        expected = DType::Array.new(
+            DType::Structure.new(
+                DType::NullData.new,
+                DType::Integer.new(42),
+                DType::Structure.new(
+                    DType::OctetString.new("hello")
                 )
             ),
-            DStructure.new(
-                DNullData.new,
-                DInteger.new(42),
-                DStructure.new(
-                    DOctetString.new("hello")
+            DType::Structure.new(
+                DType::NullData.new,
+                DType::Integer.new(42),
+                DType::Structure.new(
+                    DType::OctetString.new("hello")
                 )
             ),
-            DStructure.new(
-                DNullData.new,
-                DInteger.new(42),
-                DStructure.new(
-                    DOctetString.new("hello")
+            DType::Structure.new(
+                DType::NullData.new,
+                DType::Integer.new(42),
+                DType::Structure.new(
+                    DType::OctetString.new("hello")
                 )
             )
         )
@@ -286,26 +286,26 @@ class TestDTypeValidate < Test::Unit::TestCase
             ]
         ]
          
-        expected = DCompactArray.new(
-            DStructure.new(
-                DNullData.new,
-                DInteger.new(42),
-                DStructure.new(
-                    DOctetString.new("hello")
+        expected = DType::CompactArray.new(
+            DType::Structure.new(
+                DType::NullData.new,
+                DType::Integer.new(42),
+                DType::Structure.new(
+                    DType::OctetString.new("hello")
                 )
             ),
-            DStructure.new(
-                DNullData.new,
-                DInteger.new(42),
-                DStructure.new(
-                    DOctetString.new("hello")
+            DType::Structure.new(
+                DType::NullData.new,
+                DType::Integer.new(42),
+                DType::Structure.new(
+                    DType::OctetString.new("hello")
                 )
             ),
-            DStructure.new(
-                DNullData.new,
-                DInteger.new(42),
-                DStructure.new(
-                    DOctetString.new("hello")
+            DType::Structure.new(
+                DType::NullData.new,
+                DType::Integer.new(42),
+                DType::Structure.new(
+                    DType::OctetString.new("hello")
                 )
             )
         )

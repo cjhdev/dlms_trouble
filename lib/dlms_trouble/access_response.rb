@@ -17,15 +17,29 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/obis'
-require 'dlms_trouble/axdr'
-require 'dlms_trouble/dtype'
+require 'dlms_trouble/access_request'
 
 module DLMSTrouble
 
-    class AccessResponse
+    class AccessResponse < AccessRequest
 
-        TAG = 218
+        @tag = 218
+
+        def initialize(**args, &body)
+
+            @confirmed = true
+            @breakOnError = false
+            @selfDescribe = false
+            @dateTime = nil
+            @invokeID = 0
+            @highPriority = false
+            @requests = []
+
+            if body
+                self.instance_exec(&body)
+            end
+            
+        end
 
     end
 

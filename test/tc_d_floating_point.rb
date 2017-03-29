@@ -20,21 +20,16 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDFloatingPoint < Test::Unit::TestCase
+class TestFloatingPoint < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), DFloatingPoint.new(42.1).to_axdr)
+        assert_equal("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), DType::FloatingPoint.new(42.1).to_axdr)
 
     end
 
-    def test_from_axdr!
-
-        assert_equal(DFloatingPoint.new(42.1), DFloatingPoint.from_axdr!("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT")))
-        assert_equal(DFloatingPoint.new(42.1), DFloatingPoint.from_axdr!("\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), "\x07"))
-
-    end
+    
 
 end

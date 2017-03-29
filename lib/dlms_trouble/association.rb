@@ -17,22 +17,12 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/axdr'
-require 'dlms_trouble/dtype'
-
 module DLMSTrouble
 
-    class DTypeDecode
+    class Association
 
-        # factory method to produce DType instances from input
-        #
-        # @param input [String] slices from this string
-        # @raise [DTypeError]
-        # @return DType subclass instances
-        def self.from_axdr(input)
-            DType.tagToClass(input.slice(0).unpack("C").first).from_axdr!(input.to_s)        
-        end
-
+        
+    
     end
 
 end

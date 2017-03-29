@@ -52,7 +52,7 @@ module DLMSTrouble
         def self.putSize(size)
 
             bytes = sizeSize(size.to_i)
-            out = Array.new(bytes)
+            out = ::Array.new(bytes)
 
             if bytes == 1
                 out[0] = size
@@ -69,22 +69,22 @@ module DLMSTrouble
             out.pack("C#{bytes}")
         end       
 
-        # @param input [String]
+        # @param input [Stream]
         # @return [Integer] decoded size
         # @raise [AXDRError]
-        def self.getSize!(input)
+        def self.getSize(input)
 
             begin
 
                 size = 0
-                lead = input.slice!(0).unpack("C").first
+                lead = input.read(1).unpack("C").first
 
                 if lead.nil? or lead == 0x80
                     raise AXDRError
                 elsif lead < 0x80
                     size = lead
                 else
-                    input.slice!(0, lead & 0x7f).unpack("C#{lead & 0x7f}").each do |v|
+                    input.read(lead & 0x7f).unpack("C#{lead & 0x7f}").each do |v|
                         if v.nil?; raise AXDRError end
                         size = (size << 8) | v            
                     end

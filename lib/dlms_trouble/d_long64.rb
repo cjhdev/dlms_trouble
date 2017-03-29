@@ -19,9 +19,9 @@
 
 require 'dlms_trouble/d_integer'
 
-module DLMSTrouble
+module DLMSTrouble::DType
 
-    class DLong64 < DInteger
+    class Long64 < Integer
 
         @tag = 20
         @minValue = -9223372036854775808
@@ -32,20 +32,12 @@ module DLMSTrouble
             out << [@value].pack("q>")
         end
 
-        def self.from_axdr!(input, typedef=nil)
+        def self.from_axdr(input, typedef=nil)
             begin
-                if typedef
-                    _tag = typedef.slice!(0).unpack("C").first
-                else
-                    _tag = input.slice!(0).unpack("C").first
-                end
-                val = input.slice!(0,8).unpack("q>").first
+                val = input.read(8).unpack("q>").first
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
             end                        
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
-            end
             self.new(val)            
         end
 

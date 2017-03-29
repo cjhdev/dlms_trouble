@@ -12,9 +12,9 @@ end
 
 # a native structure we want to encode as AXDR according to schema
 native = [
-    [Time.new(2016,7,10,8,0) , 0, 810], # 8:00
-    [Time.new(2016,7,10,8,30), 1, 820], # 8:30
-    [Time.new(2016,7,10,9,0) , 2, 824], # 9:00 (new)
+    {"timestamp" => Time.new(2016,7,10,8,0) , "recordNumber" => 0, "activeImportWh" => 810}, # 8:00
+    {"timestamp" => Time.new(2016,7,10,8,30), "recordNumber" => 1, "activeImportWh" => 820}, # 8:30
+    {"timestamp" => Time.new(2016,7,10,9,0) , "recordNumber" => 2, "activeImportWh" => 824}, # 9:00 (new)
 ]
 
 puts "Native:"

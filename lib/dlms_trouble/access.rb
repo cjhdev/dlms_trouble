@@ -17,13 +17,14 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
-require "dlms_trouble/dtype_decode"
+require 'dlms_trouble/obis'
+require 'dlms_trouble/axdr'
+require 'dlms_trouble/dtype'
+require 'dlms_trouble/access_error'
 
-class TestDTypeDecode < Test::Unit::TestCase
+module DLMSTrouble
 
-    include DLMSTrouble
-
-    
+    class Access
+    end
 
 end

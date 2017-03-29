@@ -5,11 +5,11 @@ include DLMSTrouble
 # the AXDR string we want to decode
 axdr = "\x13\x02\x03\x19\x06\x06\x28\x07\xe0\x07\x0a\x07\x08\x00\x00\x00\x00\x3c\x08\x00\x00\x00\x00\x00\x00\x03\x2a\x07\xe0\x07\x0a\x07\x08\x1e\x00\x00\x00\x3c\x08\x00\x00\x00\x01\x00\x00\x03\x34"
 
-# decode axdr to dtype
-dtype = DTypeDecode.from_axdr(axdr)
+# decode axdr to Data subclass instance
+dtype = DType.from_axdr(axdr)
 
-# print representation of dtype to terminal
-puts "DType:"
+# print representation of Data subclass instance to terminal
+puts "Data:"
 pp dtype
 
 

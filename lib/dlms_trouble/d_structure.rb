@@ -17,9 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble
+module DLMSTrouble::DType
 
-    class DStructure < DArray
+    class Structure < Array
 
         @tag = 2
 
@@ -37,32 +37,22 @@ module DLMSTrouble
             end            
         end
 
-        def self.from_axdr!(input, typedef=nil)
+        def self.from_axdr(input, typedef=nil)
+
             begin
-                _tag = @tag
                 if typedef
-                    _tag = typedef.slice!(0).unpack("C").first
-                    _size = AXDR::getSize!(typedef)                        
+                    _size = DLMSTrouble::AXDR::getSize(typedef)                        
                 else
-                    _tag = input.slice!(0).unpack("C").first
-                    _size = AXDR::getSize!(input)
+                    _size = DLMSTrouble::AXDR::getSize(input)
                 end                                
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end                        
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
             end
-
+            
             out = self.new
             
             while out.size < _size do
-                if typedef                
-                    _tag = typedef.slice(0).unpack("C").first                    
-                else
-                    _tag = input.slice(0).unpack("C").first
-                end
-                out << DType::tagToClass(_tag).from_axdr!(input, typedef)                
+                out << tagToType(((typedef ? typedef : input).read(1).unpack("C").first)).from_axdr(input, typedef)                
             end
 
             out

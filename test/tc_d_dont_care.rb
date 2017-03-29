@@ -20,20 +20,16 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDDontCare < Test::Unit::TestCase
+class TestontCare < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\xff".force_encoding("ASCII-8BIT"), DDontCare.new.to_axdr)
+        assert_equal("\xff".force_encoding("ASCII-8BIT"), DType::DontCare.new.to_axdr)
 
     end
 
-    def test_from_axdr!
-
-        assert_equal(DDontCare.new, DDontCare.from_axdr!("\xff".force_encoding("ASCII-8BIT")))
-        
-    end
+    
 
 end

@@ -51,19 +51,19 @@ class TestAXDR < Test::Unit::TestCase
 
     end
 
-    def test_getSize!
+    def test_getSize
 
-        assert_equal(0, AXDR::getSize!("\x00".force_encoding("ASCII-8BIT")))
-        assert_equal(0x7f, AXDR::getSize!("\x7f".force_encoding("ASCII-8BIT")))
-        assert_equal(0x80, AXDR::getSize!("\x81\x80".force_encoding("ASCII-8BIT")))
-        assert_equal(0xff, AXDR::getSize!("\x81\xff".force_encoding("ASCII-8BIT")))
-        assert_equal(0x100, AXDR::getSize!("\x82\x01\x00".force_encoding("ASCII-8BIT")))
-        assert_equal(0x10000, AXDR::getSize!("\x83\x01\x00\x00".force_encoding("ASCII-8BIT")))
-        assert_equal(0x1000000, AXDR::getSize!("\x84\x01\x00\x00\x00".force_encoding("ASCII-8BIT")))
-        assert_equal(0x100000000, AXDR::getSize!("\x85\x01\x00\x00\x00\x00".force_encoding("ASCII-8BIT")))
+        assert_equal(0, AXDR::getSize(StringIO.new("\x00")))
+        assert_equal(0x7f, AXDR::getSize(StringIO.new("\x7f")))
+        assert_equal(0x80, AXDR::getSize(StringIO.new("\x81\x80")))
+        assert_equal(0xff, AXDR::getSize(StringIO.new("\x81\xff")))
+        assert_equal(0x100, AXDR::getSize(StringIO.new("\x82\x01\x00")))
+        assert_equal(0x10000, AXDR::getSize(StringIO.new("\x83\x01\x00\x00")))
+        assert_equal(0x1000000, AXDR::getSize(StringIO.new("\x84\x01\x00\x00\x00")))
+        assert_equal(0x100000000, AXDR::getSize(StringIO.new("\x85\x01\x00\x00\x00\x00")))
 
         assert_raise(AXDR::AXDRError) do
-            AXDR::getSize!("\x80".force_encoding("ASCII-8BIT"))
+            AXDR::getSize(StringIO.new("\x80"))
         end
     end
 

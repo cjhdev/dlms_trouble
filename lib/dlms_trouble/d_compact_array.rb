@@ -17,11 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/axdr'
+module DLMSTrouble::DType
 
-module DLMSTrouble
-
-    class DCompactArray < DArray
+    class CompactArray < Array
 
         @tag = 19
 
@@ -46,36 +44,32 @@ module DLMSTrouble
                 data << v.to_axdr(packed: true)
             end
 
-            out << AXDR::putSize(data.size)
+            out << DLMSTrouble::AXDR::putSize(data.size)
             out << data
             
         end
 
-        def self.from_axdr!(input)
-            begin
-                _tag = input.slice!(0).unpack("C").first                                    
-            rescue
-                raise DTypeError.new "input too short while decoding #{self}"
-            end                        
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
-            end
+        def self.from_axdr(input)
 
             out = self.new
 
-            typedef = parseTypeDescription!(input)
+            typedef = StringIO.new(parseTypeDescription(input))
 
-            _size = AXDR::getSize!(input)
+            _size = DLMSTrouble::AXDR::getSize(input)
 
-            packedInput = input.slice!(0, _size)
+            packedInput = StringIO.new(input.read(_size))
+            
             if packedInput.size != _size
                 raise DTypeError.new "input too short"
             end
 
-            while packedInput.size != 0 do
+            while packedInput.pos < packedInput.size do
 
-                _tag = typedef.slice(0).unpack("C").first                
-                out << DType::tagToClass(_tag).from_axdr!(packedInput, typedef.dup)
+                typedef.rewind
+
+                _tag = typedef.read(1).unpack("C").first
+
+                out << tagToType(_tag).from_axdr(packedInput, typedef)
                 
             end
             out
@@ -85,29 +79,29 @@ module DLMSTrouble
             raise DTypeError.new "cannot nest compact array"
         end
 
-        private_class_method
+        
 
             # @param input [String] 
             # @return [String] parsed packed array typeDescription
-            def self.parseTypeDescription!(input)
+            def self.parseTypeDescription(input)
 
                 begin
 
-                    out = input.slice(0)
+                    out = input.read(1)
 
-                    case DType::tagToClass(input.slice!(0).unpack("C").first)
-                    when DArray
-                        _size = input.slice!(0,2).unpack("S>").first
-                        out << AXDR::putSize(_size)
-                        out << parseTypeDescription!(input)                            
-                    when DStructure
-                        _size = AXDR::getSize!(input)
-                        out << AXDR::putSize(_size)
+                    case tagToType(out.unpack("C").first)
+                    when Array
+                        _size = input.read(2).unpack("S>").first
+                        out << DLMSTrouble::AXDR::putSize(_size)
+                        out << parseTypeDescription(input)                            
+                    when Structure
+                        _size = DLMSTrouble::AXDR::getSize(input)
+                        out << DLMSTrouble::AXDR::putSize(_size)
                         while _size > 0 do
-                            out << parseTypeDescription!(input)
-                            _size -= 1
+                            out << parseTypeDescription(input)
+                            _size = _size - 1
                         end           
-                    when DCompactArray
+                    when CompactArray
                         raise DTypeError.new "nested compactArray not allowed"
                     end
 

@@ -17,11 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/d_integer'
+module DLMSTrouble::DType
 
-module DLMSTrouble
-
-    class DBoolean < DInteger
+    class Boolean < DLMSTrouble::DType::Integer
 
         @tag = 3
         @minValue = -128

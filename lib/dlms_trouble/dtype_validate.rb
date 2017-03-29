@@ -17,9 +17,6 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/dtype'
-require 'dlms_trouble/dtype_schema'
-
 module DLMSTrouble
 
     class DTypeValidateError < Exception
@@ -62,9 +59,9 @@ module DLMSTrouble
 
                 result = false
 
-                if data.kind_of?(DType)
+                if data.kind_of?(DType::DType)
                 
-                    if data.class == DType.mapSymbolToType(expected[:type])
+                    if data.class == DType.symbolToType(expected[:type])
 
                         case expected[:type]
                         when :array, :compactArray
@@ -114,12 +111,12 @@ module DLMSTrouble
                 out = nil
 
                 # convert native to DType
-                if !input.kind_of?(DType)
+                if !input.kind_of?(DType::DType)
 
                     case expected[:type]
                     when :array, :compactArray
 
-                        out = DType.mapSymbolToType(expected[:type]).new
+                        out = DType.symbolToType(expected[:type]).new
 
                         if !input.respond_to? :each
                             raise DTypeValidateError.new "input does not respond to :each method"
@@ -131,7 +128,7 @@ module DLMSTrouble
 
                     when :structure
 
-                        out = DType.mapSymbolToType(expected[:type]).new
+                        out = DType.symbolToType(expected[:type]).new
 
                         if !input.respond_to? :each or !input.respond_to? :size
                             raise DTypeValidateError.new "input does not respond to :each and :size methods"
@@ -150,8 +147,8 @@ module DLMSTrouble
                     else
 
                         begin
-                            out = DType.mapSymbolToType(expected[:type]).new(input)                            
-                        rescue DTypeError
+                            out = DType.symbolToType(expected[:type]).new(input)                            
+                        rescue DType::DTypeError
                             raise DTypeValidateError
                         end
                         

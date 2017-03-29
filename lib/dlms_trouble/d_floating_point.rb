@@ -17,11 +17,9 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/d_float32'
+module DLMSTrouble::DType
 
-module DLMSTrouble
-
-    class DFloatingPoint < DFloat32
+    class FloatingPoint < Float32
         @tag = 7    
     end
 

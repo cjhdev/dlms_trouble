@@ -20,21 +20,14 @@
 require "test/unit"
 require "dlms_trouble/dtype"
 
-class TestDDoubleLong < Test::Unit::TestCase
+class TestoubleLong < Test::Unit::TestCase
 
     include DLMSTrouble
 
     def test_to_axdr
 
-        assert_equal("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DDoubleLong.new(-42).to_axdr)        
+        assert_equal("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DType::DoubleLong.new(-42).to_axdr)        
         
-    end
-
-    def test_from_axdr!
-
-        assert_equal(DDoubleLong.new(-42), DDoubleLong.from_axdr!("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT")))
-        assert_equal(DDoubleLong.new(-42), DDoubleLong.from_axdr!("\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), "\x05"))
-
     end
 
 end

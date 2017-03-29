@@ -17,20 +17,17 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble
+module DLMSTrouble::DType
 
-    class DArray < DType
+    class Array < DType
 
         @tag = 1
 
         def initialize(*value)
-
-            @value = Array.new
-            
+            @value = []
             value.each do |v|
                 self.push(v)
-            end
-            
+            end            
         end
 
         def push(value)
@@ -53,7 +50,7 @@ module DLMSTrouble
             out = ""
             if !opts[:packed]
                 out << axdr_tag
-                out << AXDR::putSize(@value.size)
+                out << DLMSTrouble::AXDR::putSize(@value.size)
             end
             @value.inject(out) do |acc,v|
                 acc << v.to_axdr(opts)
@@ -63,7 +60,7 @@ module DLMSTrouble
         def putTypeDescription
             out = axdr_tag
             if @value.size > 0xffff
-                raise DTypeError.new "cannot express TypeDescription for an DArray larger than 0xffff elements"
+                raise DTypeError.new "cannot express TypeDescription for an DType::Array larger than 0xffff elements"
             end
             out << [@value.size].pack("S>")
             @value.first.putTypeDescription            
@@ -79,35 +76,37 @@ module DLMSTrouble
             end        
         end
 
-        def self.from_axdr!(input, typedef=nil)
+        def self.from_axdr(input, typedef=nil)
             begin
                 if typedef
-                    _tag = typedef.slice!(0).unpack("C").first
-                    _size = AXDR::getSize!(typedef)                        
+                    
+                    _size = DLMSTrouble::AXDR::getSize(typedef)
                 else
-                    _tag = input.slice!(0).unpack("C").first
-                    _size = AXDR::getSize!(input)
+                    _size = DLMSTrouble::AXDR::getSize(input)
                 end                                
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end                        
-            if _tag != @tag
-                raise DTypeError.new "decode #{self}: expecting tag #{@tag} but got #{_tag}"
             end
-
+              
             out = self.new
 
+            if typedef
+
+                _tag = typedef.read(1).unpack("C").first
+
+            end
+
+            
             while out.size < _size do
-                if typedef
-                    _tag = typedef.slice(0).unpack("C").first
+                if typedef                
                     if out.size == (_size - 1)
-                        out << DType::tagToClass(_tag).from_axdr!(input, typedef)
+                        out << tagToType(_tag).from_axdr(input, typedef)
                     else
-                        out << DType::tagToClass(_tag).from_axdr!(input, typedef.dup)
+                        out << tagToType(_tag).from_axdr(input, typedef.dup)
                     end                    
                 else
-                    _tag = input.slice(0).unpack("C").first
-                    out << DType::tagToClass(_tag).from_axdr!(input)                
+                    _tag = input.read(1).unpack("C").first
+                    out << tagToType(_tag).from_axdr(input)                
                 end
             end
 

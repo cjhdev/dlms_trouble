@@ -34,6 +34,14 @@ module DLMSTrouble
             @data = data
         end
 
+        def self.tag
+            TAG
+        end
+
+        def tag
+            TAG
+        end
+
         # @return [String]
         def  to_request_spec
             [TAG, @classID, @instanceID.to_axdr, @methodID].pack("CS>A#{@instanceID.to_axdr.size}c")

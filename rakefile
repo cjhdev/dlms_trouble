@@ -7,4 +7,12 @@ Rake::TestTask.new do |t|
     
 end
 
+task :run_examples do
+    Dir.glob("examples/**/*.rb").each do |f|
+        system "ruby -Ilib -Cexamples -- #{f.sub("examples/", "")}"
+    end
+end
+
 task :default => :test
+
+

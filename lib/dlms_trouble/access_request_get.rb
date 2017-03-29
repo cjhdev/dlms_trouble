@@ -19,7 +19,6 @@
 
 require 'dlms_trouble/obis'
 require 'dlms_trouble/axdr'
-require 'dlms_trouble/dtype'
 require 'dlms_trouble/access_error'
 
 module DLMSTrouble
@@ -28,10 +27,20 @@ module DLMSTrouble
 
         TAG = 1
 
+        attr_reader :classID, :instanceID, :methodID
+
         def initialize(classID, instanceID, methodID)
             @classID = classID.to_i
             @instanceID = OBIS.new(instanceID.to_s)
             @methodID = methodID    
+        end
+
+        def self.tag
+            TAG
+        end
+
+        def tag
+            TAG
         end
 
         # @return [String]
@@ -41,11 +50,11 @@ module DLMSTrouble
 
         # @return [String]
         def to_request_data
-            DNullData.new.to_axdr
+            DType::NullData.new.to_axdr
         end
 
 =begin
-        def requestfrom_axdr!(axdr)
+        def requestfrom_axdr(axdr)
             input = axdr.slice!(0).unpack("CS>A#{OBIS.size}c").each
             if input.next.to_i == TAG
                 self.new(input.next, input.next, input.next)
