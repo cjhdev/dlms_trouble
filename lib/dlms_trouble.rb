@@ -57,10 +57,10 @@ require 'dlms_trouble/get_request'
 require 'dlms_trouble/get_response'
 
 require 'dlms_trouble/set_request'
-#require 'dlms_trouble/set_response'
+require 'dlms_trouble/set_response'
 
 require 'dlms_trouble/action_request'
-#require 'dlms_trouble/action_response'
+require 'dlms_trouble/action_response'
 
 require 'dlms_trouble/xdlms_apdu'
 

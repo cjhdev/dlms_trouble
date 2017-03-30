@@ -32,13 +32,7 @@ module DLMSTrouble
         def self.decode(input)
         
             invokeID = LongInvokeIDAndPriority.decode(input)
-            dateTimeString = DType::OctetString.decode(input)
-
-            if dateTimeString.size > 0
-                dateTime = DType::DateTime.decode(StringIO.new(dateTimeString.encode))
-            else
-                dateTime = nil
-            end
+            dateTime = DType::OctetString.decode(input)
 
             spec = []
             
