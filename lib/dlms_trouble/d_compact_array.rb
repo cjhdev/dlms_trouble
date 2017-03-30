@@ -44,7 +44,7 @@ module DLMSTrouble::DType
                 data << v.to_axdr(packed: true)
             end
 
-            out << DLMSTrouble::AXDR::putSize(data.size)
+            out << DLMSTrouble::AXDR::Length.new(data.size).encode
             out << data
             
         end
@@ -55,7 +55,7 @@ module DLMSTrouble::DType
 
             typedef = StringIO.new(parseTypeDescription(input))
 
-            _size = DLMSTrouble::AXDR::getSize(input)
+            _size = DLMSTrouble::AXDR::Length.decode(input).value
 
             packedInput = StringIO.new(input.read(_size))
             
@@ -92,11 +92,11 @@ module DLMSTrouble::DType
                     case tagToType(out.unpack("C").first)
                     when Array
                         _size = input.read(2).unpack("S>").first
-                        out << DLMSTrouble::AXDR::putSize(_size)
+                        out << DLMSTrouble::AXDR::Length.new(_size).encode
                         out << parseTypeDescription(input)                            
                     when Structure
-                        _size = DLMSTrouble::AXDR::getSize(input)
-                        out << DLMSTrouble::AXDR::putSize(_size)
+                        _size = DLMSTrouble::AXDR::Length.decode(input).value
+                        out << DLMSTrouble::AXDR::Length.new(_size).encode
                         while _size > 0 do
                             out << parseTypeDescription(input)
                             _size = _size - 1

@@ -31,7 +31,7 @@ module DLMSTrouble::DType
 
         def putTypeDescription
             out = axdr_tag
-            out << AXDR::putSize(@value.size)
+            out << AXDR::Length.new(@value.size).encode
             @value.inject(out) do |acc, v|
                 acc << v.putTypeDescription
             end            
@@ -41,9 +41,9 @@ module DLMSTrouble::DType
 
             begin
                 if typedef
-                    _size = DLMSTrouble::AXDR::getSize(typedef)                        
+                    _size = DLMSTrouble::AXDR::Length.decode(typedef).value
                 else
-                    _size = DLMSTrouble::AXDR::getSize(input)
+                    _size = DLMSTrouble::AXDR::Length.decode(input).value
                 end                                
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"

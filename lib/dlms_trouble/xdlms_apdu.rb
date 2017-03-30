@@ -17,43 +17,41 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble::DType
+module DLMSTrouble
 
-    class OctetString < DType
+    class APDU
 
-        @tag = 9
+        PDU = {
+            AARQ.tag            => AARQ,
+            AARE.tag            => AARE,
+            AccessRequest.tag   => AccessRequest,
+            AccessResponse.tag  => AccessResponse
+        }
 
-        def initialize(value)
-            super(value.to_s)
+        def self.decode(input)
+
+            if input.kind_of? String
+                input = StringIO.new(input)
+            end
+
+            tag = AXDR::Length.decode(input)
+
+            cls = PDU[tag]
+
+            if cls.nil?
+                raise "unknown APDU"
+            end
+
+            result = cls.decode(input)
+
+            if input.pos < input.size
+                raise "extra bytes"
+            end
+
+            result
+            
         end
-
-        def to_axdr(**opts)
-            out = opts[:packed] ? "" : axdr_tag
-            out << DLMSTrouble::AXDR::Length.new(@value.size).encode
-            out << @value
-        end
-
-        def self.from_axdr(input, typedef=nil)
-            begin
-                _size = DLMSTrouble::AXDR::Length.decode(input)
-                val = input.read(_size.value)
-                if val.size != _size.value
-                    raise
-                end                
-            rescue
-                raise DTypeError.new "input too short while decoding #{self}"
-            end                        
-            self.new(val)            
-        end
-
-        def size
-            @value.size
-        end
-
-        def to_native
-            @value.to_s
-        end
-
+    
     end
 
 end

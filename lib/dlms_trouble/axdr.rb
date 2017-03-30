@@ -24,78 +24,93 @@ module DLMSTrouble
         class AXDRError < Exception
         end
 
-        # @param size [Integer]
-        # @return [Integer] byte length to encode size
-        def self.sizeSize(size)
-
-            if size < 0x80
-                return 1
-            else
-                max = 0x100
-                bytes = 2
-
-                loop do
-
-                    if size < max
-                        return bytes
-                    end
-
-                    bytes += 1
-                    max = max << 8
-
-                end
+        class Tag
+            attr_reader :value
+            def self.decode(input)
+                self.new(input.read(1).unpack("C"))
+            end
+            def new(value)
+                @value
+            end
+            def encode
+                [@value].pack("C")
             end
         end
 
-        # @param size [Integer]
-        # @return [String] encoded size
-        def self.putSize(size)
+        class Length
+        
+            attr_reader :value
 
-            bytes = sizeSize(size.to_i)
-            out = ::Array.new(bytes)
-
-            if bytes == 1
-                out[0] = size
-            else
-                out.each_with_index do |v,i|
-                    if i == 0
-                        out[i] = 0x80 + bytes - 1
-                    else
-                        out[i] = size >> ((bytes - i - 1)*8)
-                    end
-                end
-            end
-
-            out.pack("C#{bytes}")
-        end       
-
-        # @param input [Stream]
-        # @return [Integer] decoded size
-        # @raise [AXDRError]
-        def self.getSize(input)
-
-            begin
-
-                size = 0
-                lead = input.read(1).unpack("C").first
-
-                if lead.nil? or lead == 0x80
-                    raise AXDRError
-                elsif lead < 0x80
-                    size = lead
+            def self.byteSize(value)
+                if value < 0x80
+                    return 1
                 else
-                    input.read(lead & 0x7f).unpack("C#{lead & 0x7f}").each do |v|
-                        if v.nil?; raise AXDRError end
-                        size = (size << 8) | v            
+                    max = 0x100
+                    bytes = 2
+
+                    loop do
+
+                        if value < max
+                            return bytes
+                        end
+
+                        bytes += 1
+                        max = max << 8
+
+                    end
+                end
+            end
+            
+            def self.decode(input)
+                begin
+
+                    size = 0
+                    lead = input.read(1).unpack("C").first
+
+                    if lead.nil? or lead == 0x80
+                        raise AXDRError
+                    elsif lead < 0x80
+                        size = lead
+                    else
+                        input.read(lead & 0x7f).unpack("C#{lead & 0x7f}").each do |v|
+                            if v.nil?; raise AXDRError end
+                            size = (size << 8) | v            
+                        end
+                    end
+
+                rescue
+                    raise AXDRError
+                end
+
+                self.new(size)
+                
+            end
+            
+            def initialize(value)
+                if value.nil?
+                    raise
+                end
+                @value = value
+            end
+
+            def encode
+                bytes = self.class.byteSize(@value)
+                out = ::Array.new(bytes)
+
+                if bytes == 1
+                    out[0] = value
+                else
+                    out.each_with_index do |v,i|
+                        if i == 0
+                            out[i] = 0x80 + bytes - 1
+                        else
+                            out[i] = value >> ((bytes - i - 1)*8)
+                        end
                     end
                 end
 
-            rescue
-                raise AXDRError
+                out.pack("C#{bytes}")
             end
-
-            size
-                            
         end
         
     end

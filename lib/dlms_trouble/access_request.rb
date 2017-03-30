@@ -59,16 +59,16 @@ module DLMSTrouble
             out << [tag, invokeIDAndPriority].pack("CL>")
 
             if @dateTime
-                out << AXDR::putSize(@dateTime.to_axdr.size)
+                out << AXDR::Length.new(@dateTime.to_axdr.size).encode
                 out << @dateTime.to_axdr
             else
-                out << AXDR::putSize(0)
+                out << AXDR::Length.new(0).encode
             end
 
-            out << AXDR::putSize(@requests.size)
+            out << AXDR::Length.new(@requests.size).encode
             @requests.inject(out) { |acc, r| acc << r.to_request_spec }
 
-            out << AXDR::putSize(@requests.size)
+            out << AXDR::Length.new(@requests.size).encode
             @requests.inject(out) { |acc, r| acc << r.to_request_data }
 
             out

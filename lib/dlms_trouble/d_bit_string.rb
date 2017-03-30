@@ -50,7 +50,7 @@ module DLMSTrouble::DType
 
         def to_axdr(**opts)
             out = opts[:packed] ? "" : axdr_tag
-            out << DLMSTrouble::AXDR::putSize(@value.size)
+            out << DLMSTrouble::AXDR::Length.new(@value.size).encode
 
             buf = 0
             
@@ -97,7 +97,7 @@ module DLMSTrouble::DType
 
         def self.from_axdr(input)
             begin
-                bitSize = DLMSTrouble::AXDR::getSize(input)
+                bitSize = DLMSTrouble::AXDR::Length.decode(input).value
                 byteSize = ( (bitSize / 8 ) + (((bitSize % 8) == 0) ? 0 : 1) )
                 val = input.read(byteSize).unpack("C#{byteSize}")                
             rescue
