@@ -19,44 +19,24 @@
 
 module DLMSTrouble::DType
 
-    class Structure < Array
+    class Long64Unsigned < Integer
 
-        @tag = 2
+        @tag = 21
+        @minValue = 0
+        @maxValue = 18446744073709551615
 
-        def push(value)
-            @value.push(value)
+        def encode(**opts)
+            out = opts[:packed] ? "" : axdr_tag
+            out << [@value].pack("Q>")
         end
 
-        alias << push
-
-        def putTypeDescription
-            out = axdr_tag
-            out << AXDR::Length.new(@value.size).encode
-            @value.inject(out) do |acc, v|
-                acc << v.putTypeDescription
-            end            
-        end
-
-        def self.from_axdr(input, typedef=nil)
-
+        def self.decode(input, typedef=nil)
             begin
-                if typedef
-                    _size = DLMSTrouble::AXDR::Length.decode(typedef).value
-                else
-                    _size = DLMSTrouble::AXDR::Length.decode(input).value
-                end                                
+                val = input.read(8).unpack("Q>").first
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end
-            
-            out = self.new
-            
-            while out.size < _size do
-                out << tagToType(((typedef ? typedef : input).read(1).unpack("C").first)).from_axdr(input, typedef)                
-            end
-
-            out
-
+            end                        
+            self.new(val)            
         end
 
     end

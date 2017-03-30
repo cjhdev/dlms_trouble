@@ -25,7 +25,7 @@ class TestBCD < Test::Unit::TestCase
     include DLMSTrouble
 
     def test_to_axdr
-        assert_equal("\x0D\x2A".force_encoding("ASCII-8BIT"), DType::BCD.new(42).to_axdr)
+        assert_equal("\x0D\x2A".force_encoding("ASCII-8BIT"), DType::BCD.new(42).encode)
     end
 
 end

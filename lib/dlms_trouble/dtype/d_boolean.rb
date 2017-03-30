@@ -17,14 +17,32 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/obis'
-require 'dlms_trouble/axdr'
-require 'dlms_trouble/dtype'
-require 'dlms_trouble/access_error'
+module DLMSTrouble::DType
 
-module DLMSTrouble
+    class Boolean < DLMSTrouble::DType::Integer
 
-    class Access
+        @tag = 3
+        @minValue = -128
+        @maxValue = 127
+        
+        def initialize(value)
+            case value
+            when 0, nil, false
+                @value = false
+            else
+                @value = true
+            end
+        end
+
+        def encode(**opts)
+            out = opts[:packed] ? "" : axdr_tag
+            out << [( (@value) ? 1 : 0 ) ].pack("C")
+        end
+        
+        def to_native
+            @value
+        end
+        
     end
 
 end

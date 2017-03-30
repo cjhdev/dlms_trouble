@@ -48,7 +48,7 @@ module DLMSTrouble::DType
 
         end
 
-        def to_axdr(**opts)
+        def encode(**opts)
             out = opts[:packed] ? "" : axdr_tag
             out << DLMSTrouble::AXDR::Length.new(@value.size).encode
 
@@ -95,7 +95,7 @@ module DLMSTrouble::DType
             @value.to_a
         end
 
-        def self.from_axdr(input)
+        def self.decode(input)
             begin
                 bitSize = DLMSTrouble::AXDR::Length.decode(input).value
                 byteSize = ( (bitSize / 8 ) + (((bitSize % 8) == 0) ? 0 : 1) )

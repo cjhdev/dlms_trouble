@@ -19,26 +19,26 @@
 
 module DLMSTrouble::DType
 
-    class Unsigned < Integer
+    class Enum < Integer
 
-        @tag = 17
+        @tag = 22
         @minValue = 0
         @maxValue = 255
 
-        def to_axdr(**opts)
+        def encode(**opts)
             out = opts[:packed] ? "" : axdr_tag
             out << [@value].pack("C")
         end
 
-        def self.from_axdr(input, typedef=nil)
+        def self.decode(input, typedef=nil)            
             begin
                 val = input.read(1).unpack("C").first
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end                                    
+            end 
             self.new(val)            
         end
-                            
+
     end
 
 end

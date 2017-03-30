@@ -17,27 +17,25 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/d_integer'
-
 module DLMSTrouble::DType
 
-    class Long64 < Integer
+    class DoubleLongUnsigned < Integer
 
-        @tag = 20
-        @minValue = -9223372036854775808
-        @maxValue = 9223372036854775807
+        @tag = 6
+        @minValue = 0
+        @maxValue = 4294967295
 
-        def to_axdr(**opts)
+        def encode(**opts)
             out = opts[:packed] ? "" : axdr_tag
-            out << [@value].pack("q>")
+            out << [@value].pack("L>")
         end
 
-        def self.from_axdr(input, typedef=nil)
+        def self.decode(input, typedef=nil)            
             begin
-                val = input.read(8).unpack("q>").first
+                val = input.read(4).unpack("L>").first
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end                        
+            end                                
             self.new(val)            
         end
 

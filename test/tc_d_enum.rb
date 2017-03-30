@@ -26,7 +26,7 @@ class TestEnum < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), DType::Enum.new(42).to_axdr)
+        assert_equal("\x16\x2A".force_encoding("ASCII-8BIT"), DType::Enum.new(42).encode)
 
     end
 

@@ -46,14 +46,14 @@ module DLMSTrouble::DType
 
         alias << push
 
-        def to_axdr(**opts)
+        def encode(**opts)
             out = ""
             if !opts[:packed]
                 out << axdr_tag
                 out << DLMSTrouble::AXDR::Length.new(@value.size).encode
             end
             @value.inject(out) do |acc,v|
-                acc << v.to_axdr(opts)
+                acc << v.encode(opts)
             end
         end
 
@@ -76,7 +76,7 @@ module DLMSTrouble::DType
             end        
         end
 
-        def self.from_axdr(input, typedef=nil)
+        def self.decode(input, typedef=nil)
             begin
                 if typedef
                     
@@ -100,13 +100,13 @@ module DLMSTrouble::DType
             while out.size < _size do
                 if typedef                
                     if out.size == (_size - 1)
-                        out << tagToType(_tag).from_axdr(input, typedef)
+                        out << tagToType(_tag).decode(input, typedef)
                     else
-                        out << tagToType(_tag).from_axdr(input, typedef.dup)
+                        out << tagToType(_tag).decode(input, typedef.dup)
                     end                    
                 else
                     _tag = input.read(1).unpack("C").first
-                    out << tagToType(_tag).from_axdr(input)                
+                    out << tagToType(_tag).decode(input)                
                 end
             end
 

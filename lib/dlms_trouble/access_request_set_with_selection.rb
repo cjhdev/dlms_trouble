@@ -1,3 +1,4 @@
+
 # Copyright (c) 2016 Cameron Harper
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -17,26 +18,30 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble::DType
+module DLMSTrouble
 
-    class NullData < DType
+    class AccessRequestSetWithSelection
 
-        @tag = 0
+        @tag = AXDR::Tag.new(4)
 
-        def initialize(value=nil)
-            super(nil)
+        def self.tag
+            @tag
         end
 
-        def to_axdr(**opts)
-            opts[:packed] ? "" : axdr_tag
+        def initialize(attributeDescriptor, selectiveAccessDescriptor, data)
+            @attributeDescriptor = attributeDescriptor
+            @selectiveAccessDescriptor = selectiveAccessDescriptor
+            @data = data
         end
 
-        def self.from_axdr(input, typedef=nil)
-            self.new            
+        def encode_spec
+            buffer = self.class.tag.encode
+            buffer << @attributeDescriptor.encode
+            buffer << @selectiveAccessDescriptor.encode
         end
 
-        def to_native
-            @value
+        def encode_data
+            @data.encode
         end
 
     end

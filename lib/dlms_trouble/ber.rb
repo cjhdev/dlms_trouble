@@ -26,32 +26,56 @@ module DLMSTrouble
             CLS = {
                 :UNIVERSAL => 0,
                 :APPLICATION => 0x40,
-                :CONTEXT_SPECIFIC => 0x80,
-                :PRIVATE = 0xC0
+                :CONTEXT => 0x80,
+                :PRIVATE => 0xC0
             }
             
             attr_reader :cls, :tag
+
             def primitive?
                 @primitive
             end
-            def self.decode(input)
-                value = input.read(1).unpack("C")
-                cls = CLS.values.
-                self.new()
-            end
-            def initialize(cls, primitive, tag)
-
-                if !CLS.keys.include? cls
-                    raise
-                end
             
-                @cls = cls
-                @primitive = (primitive ? true : false)
-                @tag = tag & 0x1f
+            def self.decode(input)
+                raw = input.read(1).unpack("C")
+
+                opts = {
+                    :cls => CLS.key(raw & 0xc0),
+                    :primitive => (((raw & 0x20) == 0x20) ? true : false)
+                }
+                    
+                self.new(raw & 0x1f, **opts)                    
+                    
             end
-            def encode(output)
-                output.write([CLS[cls] | ( primitive? ? 0x20 : 0x00) | tag].pack("C"))
-            end            
+            
+            def initialize(tag, **opts)
+
+                @tag = tag.to_i & 0x1f
+
+                if opts[:cls]      
+                    if !CLS.keys.include? opts[:cls]
+                        raise
+                    end
+                    @cls = opts[:cls]
+                else
+                    @cls = :UNIVERSAL
+                end
+                
+                if opts[:primitive]
+                    @primitive = (primitive ? true : false)
+                else
+                    @primitive = false
+                end
+                
+            end
+            
+            def encode
+                raw = CLS[cls]
+                raw |= ( @primitive ? 0x20 : 0x00 )
+                raw |= tag & 0x1f
+                [raw].pack("C")
+            end
+            
         end
 
         class Length
@@ -61,6 +85,10 @@ module DLMSTrouble
             def definite?
                 !@length.nil?
             end
+
+            def indefinite?
+                @length.nil?
+            end
     
             def self.decode(input)
                 bytes = input.read(1).unpack("C")
@@ -69,8 +97,7 @@ module DLMSTrouble
                 elsif bytes < 0x80
                     self.new(bytes)
                 else
-                    length = input.read(bytes).unpack("ccC#{bytes}")
-                    
+                    length = input.read(bytes).unpack("C#{bytes}")                    
                 end                    
             end
 

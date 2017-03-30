@@ -29,7 +29,7 @@ module DLMSTrouble
         # @param input [StringIO]
         # @raise [DTypeError]
         # @return [DType] subclass instances
-        def self.from_axdr(input)
+        def self.decode(input)
             
             if input.kind_of? String
                 input = StringIO.new(input)
@@ -41,7 +41,7 @@ module DLMSTrouble
                 raise DTypeError.new "input too short while decoding #{self}"
             end
 
-            tagToType(_tag).from_axdr(input)
+            tagToType(_tag).decode(input)
             
         end
 
@@ -147,29 +147,29 @@ module DLMSTrouble
         
 end
 
-require 'dlms_trouble/d_null_data'
-require 'dlms_trouble/d_array'
-require 'dlms_trouble/d_structure'
-require 'dlms_trouble/d_bit_string'
-require 'dlms_trouble/d_octet_string'
-require 'dlms_trouble/d_visible_string'
-require 'dlms_trouble/d_utf8_string'
-require 'dlms_trouble/d_integer'
-require 'dlms_trouble/d_double_long'
-require 'dlms_trouble/d_double_long_unsigned'
-require 'dlms_trouble/d_bcd'
-require 'dlms_trouble/d_boolean'
-require 'dlms_trouble/d_long'
-require 'dlms_trouble/d_unsigned'
-require 'dlms_trouble/d_long_unsigned'
-require 'dlms_trouble/d_compact_array'
-require 'dlms_trouble/d_long64'
-require 'dlms_trouble/d_long64_unsigned'
-require 'dlms_trouble/d_enum'
-require 'dlms_trouble/d_float32'
-require 'dlms_trouble/d_float64'
-require 'dlms_trouble/d_floating_point'
-require 'dlms_trouble/d_date_time'
-require 'dlms_trouble/d_date'
-require 'dlms_trouble/d_time'
-require 'dlms_trouble/d_dont_care'
+require 'dlms_trouble/dtype/d_null_data'
+require 'dlms_trouble/dtype/d_array'
+require 'dlms_trouble/dtype/d_structure'
+require 'dlms_trouble/dtype/d_bit_string'
+require 'dlms_trouble/dtype/d_octet_string'
+require 'dlms_trouble/dtype/d_visible_string'
+require 'dlms_trouble/dtype/d_utf8_string'
+require 'dlms_trouble/dtype/d_integer'
+require 'dlms_trouble/dtype/d_double_long'
+require 'dlms_trouble/dtype/d_double_long_unsigned'
+require 'dlms_trouble/dtype/d_bcd'
+require 'dlms_trouble/dtype/d_boolean'
+require 'dlms_trouble/dtype/d_long'
+require 'dlms_trouble/dtype/d_unsigned'
+require 'dlms_trouble/dtype/d_long_unsigned'
+require 'dlms_trouble/dtype/d_compact_array'
+require 'dlms_trouble/dtype/d_long64'
+require 'dlms_trouble/dtype/d_long64_unsigned'
+require 'dlms_trouble/dtype/d_enum'
+require 'dlms_trouble/dtype/d_float32'
+require 'dlms_trouble/dtype/d_float64'
+require 'dlms_trouble/dtype/d_floating_point'
+require 'dlms_trouble/dtype/d_date_time'
+require 'dlms_trouble/dtype/d_date'
+require 'dlms_trouble/dtype/d_time'
+require 'dlms_trouble/dtype/d_dont_care'

@@ -98,7 +98,7 @@ module DLMSTrouble::DType
             
         end
 
-        def to_axdr(**opts)
+        def encode(**opts)
             
             out = opts[:packed] ? "" : axdr_tag
 
@@ -124,7 +124,7 @@ module DLMSTrouble::DType
             end
         end
 
-        def self.from_axdr(input, typedef=nil)
+        def self.decode(input, typedef=nil)
             begin
                 decoded = input.read(4).unpack("CCCC").each                
             rescue

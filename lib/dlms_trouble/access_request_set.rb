@@ -17,42 +17,29 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/obis'
-require 'dlms_trouble/dtype'
-require 'dlms_trouble/access_error'
-
 module DLMSTrouble
 
     class AccessRequestSet
 
-        TAG = 2
+        @tag = AXDR::Tag.new(2)
 
-        def initialize(classID, instanceID, methodID, data)
-            @classID = classID.to_i
-            @instanceID = OBIS.new(instanceID.to_s)
-            @methodID = methodID
+        def self.tag
+            @tag
+        end
+
+        def initialize(attributeDescriptor, data)
+            @attributeDescriptor = attributeDescriptor
             @data = data
         end
 
-        def self.tag
-            TAG
+        def encode_spec
+            self.class.tag.encode << @attributeDescriptor.encode
         end
 
-        def tag
-            TAG
-        end
-
-        # @return [String]
-        def  to_request_spec
-            [TAG, @classID, @instanceID.to_axdr, @methodID].pack("CS>A#{@instanceID.to_axdr.size}c")
-        end
-
-        # @return [String]
-        def to_request_data
-            @data.to_axdr
+        def encode_data
+            @data.encode
         end
 
     end
 
 end
-

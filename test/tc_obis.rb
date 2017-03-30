@@ -43,8 +43,8 @@ class TestOBIS < Test::Unit::TestCase
         assert_equal("1.2.3.4.5.6", @obis.to_s)        
     end
 
-    def test_to_axdr    
-        assert_equal("\x01\x02\x03\x04\x05\x06".force_encoding("ASCII-8BIT"), @obis.to_axdr)
+    def test_encode    
+        assert_equal("\x01\x02\x03\x04\x05\x06".force_encoding("ASCII-8BIT"), @obis.encode)
     end
 
     def test_init_from_axdr

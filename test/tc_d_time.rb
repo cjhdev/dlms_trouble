@@ -32,7 +32,7 @@ class TestTime < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x1B\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DType::Time.new.to_axdr)        
+        assert_equal("\x1B\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DType::Time.new.encode)        
 
     end
 

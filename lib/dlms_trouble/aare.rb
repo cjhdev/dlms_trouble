@@ -21,7 +21,11 @@ module DLMSTrouble
 
     class AARE
 
-        @tag = 1
+        @tag = BER::Identifier.new(1, cls: :APPLICATION)
+
+        def self.tag
+            @tag
+        end
 
         def self.decode(input)
     
@@ -52,7 +56,12 @@ module DLMSTrouble
             # application-context-name
             if id.tag == 1
 
-                id = Identifier.decode(input)
+                length = BER::Length.decode(input)
+                applicationContextName = ApplicationContextName.decode(StringIO.new(input.read(length)))
+
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             
             else
                 raise
@@ -71,7 +80,9 @@ module DLMSTrouble
             if id.tag == 3
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             else
                 raise
             end
@@ -79,47 +90,62 @@ module DLMSTrouble
             if id.tag == 4
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 5
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 6
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 7
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 8
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 9
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 10
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 29
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
+                if input.pos < input.size
+                    id = Identifier.decode(input)
+                end
             end
             if id.tag == 30
                 length = BER::Length.decode(input)
                 input.read(input)
-                id = Identifier.decode(input)
             end
 
             if input.pos < input.size
@@ -134,12 +160,12 @@ module DLMSTrouble
 
             buffer = ""
 
-            buffer << BER::Identifier.new(:APPLICATION, true, 1).encode
-            buffer << BER::Length.new(@applicationContextName.size).encode
-            buffer << @applicationContextName
+            buffer << BER::Identifier.new(1, cls: :CONTEXT).encode
+            buffer << BER::Length.new(@applicationContextName.encode.size).encode
+            buffer << @applicationContextName.encode
 
-            buffer.prepend(BER::Identifier.new(:APPLICATION, false, self.tag).encode)
             buffer.prepend(BER::Length.new(buffer.size).encode)
+            buffer.prepend(self.class.tag.encode)
         
         end
 

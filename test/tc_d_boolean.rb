@@ -26,8 +26,8 @@ class TestBoolean < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x03\x00".force_encoding("ASCII-8BIT"), DType::Boolean.new(false).to_axdr)
-        assert_equal("\x03\x01".force_encoding("ASCII-8BIT"), DType::Boolean.new(true).to_axdr)
+        assert_equal("\x03\x00".force_encoding("ASCII-8BIT"), DType::Boolean.new(false).encode)
+        assert_equal("\x03\x01".force_encoding("ASCII-8BIT"), DType::Boolean.new(true).encode)
 
     end
 

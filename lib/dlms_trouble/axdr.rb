@@ -24,17 +24,42 @@ module DLMSTrouble
         class AXDRError < Exception
         end
 
+        class Boolean
+            attr_reader :value
+            def self.decode(input)
+                case input.read(1).unpack("C")
+                when 0
+                    self.new(false)
+                when 1
+                    self.new(true)
+                else
+                    raise "invalid boolean value"
+                end                   
+            end
+            def initialize(value)
+                case value
+                when 0, nil, false
+                    @value = false
+                else
+                    @value = true
+                end
+            end
+            def encode
+                [(@value ? 1 : 0)].pack("C")
+            end
+        end
+
         class Tag
             attr_reader :value
             def self.decode(input)
                 self.new(input.read(1).unpack("C"))
             end
-            def new(value)
-                @value
+            def initialize(value)
+                @value = value
             end
             def encode
                 [@value].pack("C")
-            end
+            end       
         end
 
         class Length

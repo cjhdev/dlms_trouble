@@ -22,10 +22,16 @@ module DLMSTrouble
     class APDU
 
         PDU = {
-            AARQ.tag            => AARQ,
-            AARE.tag            => AARE,
-            AccessRequest.tag   => AccessRequest,
-            AccessResponse.tag  => AccessResponse
+        
+            AARQ.tag.encode             => AARQ,
+            AARE.tag.encode             => AARE,
+            RLRQ.tag.encode             => RLRQ,
+            RLRE.tag.encode             => RLRE,
+
+            GetRequest.tag.encode       => GetRequest,
+            SetRequest.tag.encode       => SetRequest,
+            ActionRequest.tag.encode    => ActionRequest,
+
         }
 
         def self.decode(input)
@@ -34,9 +40,9 @@ module DLMSTrouble
                 input = StringIO.new(input)
             end
 
-            tag = AXDR::Length.decode(input)
+            tag = AXDR::Identifier.decode(input)
 
-            cls = PDU[tag]
+            cls = PDU[tag.encode]
 
             if cls.nil?
                 raise "unknown APDU"

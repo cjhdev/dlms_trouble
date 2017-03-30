@@ -17,19 +17,45 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
-require "dlms_trouble"
+module DLMSTrouble
 
-class TestNullData < Test::Unit::TestCase
+    class Ciphered
 
-    include DLMSTrouble
+        attr_reader :header, :ic, :payload
 
-    def test_to_axdr
+        def self.decode(input)
 
-        assert_equal("\x00".force_encoding("ASCII-8BIT"), DType::NullData.new.encode)
+            length = AXDR::Length.decode(input)
+            buffer = input.read(length.value)
+
+            stream = StreamIO.new(buffer)
+
+            header = SecurityHeader.decode(stream)
+            ic = stream.read(4)
+            if ic.size != 4
+                raise
+            end
+
+            payload = stream.read(stream.size - stream.pos)            
+
+            self.new(sc, ic, payload)
+        
+        end
+
+        def initialize(header, ic, payload)
+            @header = header
+            @ic = ic
+            @payload = payload
+        end
+
+        def encode
+            buffer = @header.encode
+            buffer << [@ic].pack(">L")
+            buffer << payload
+        end
 
     end
 
-    
-
 end
+
+

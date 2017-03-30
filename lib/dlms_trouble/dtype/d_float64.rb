@@ -17,19 +17,34 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
-require "dlms_trouble"
+module DLMSTrouble::DType
 
-class TestNullData < Test::Unit::TestCase
+    class Float64 < DType
 
-    include DLMSTrouble
+        @tag = 24
 
-    def test_to_axdr
+        def initialize(value)
+            super(value.to_f)
+        end
 
-        assert_equal("\x00".force_encoding("ASCII-8BIT"), DType::NullData.new.encode)
+        def encode(**opts)
+            out = opts[:packed] ? "" : axdr_tag
+            out << [@value].pack("G")
+        end
 
+        def self.decode(input, typedef=nil)            
+            begin
+                val = input.read(8).unpack("G").first
+            rescue
+                raise DTypeError.new "input too short while decoding #{self}"
+            end                        
+            self.new(val)            
+        end
+
+        def to_native
+            @value.to_f
+        end
+        
     end
-
-    
 
 end

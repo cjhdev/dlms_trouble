@@ -26,7 +26,7 @@ class TestVisibleString < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x0a\x05world".force_encoding("ASCII-8BIT"), DType::VisibleString.new("world").to_axdr)
+        assert_equal("\x0a\x05world".force_encoding("ASCII-8BIT"), DType::VisibleString.new("world").encode)
 
     end
 

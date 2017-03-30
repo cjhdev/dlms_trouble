@@ -34,7 +34,7 @@ class TestCompactArray < Test::Unit::TestCase
                 DType::Integer.new(42),
                 DType::Integer.new(42),
                 DType::Integer.new(42)                
-            ).to_axdr        
+            ).encode        
         )
 
     end

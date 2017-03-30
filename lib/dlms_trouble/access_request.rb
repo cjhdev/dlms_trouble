@@ -17,61 +17,83 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/obis'
-require 'dlms_trouble/axdr'
-require 'dlms_trouble/access_error'
-require 'dlms_trouble/access_request_set'
-require 'dlms_trouble/access_request_get'
-
 module DLMSTrouble
 
     class AccessRequest
 
-        @tag = 217
+        @tag = AXDR::Length.new(217)
+
+        attr_reader :invokeID, :dateTime, :requests
+
+        def self.tag
+            @tag
+        end
+
+        def self.decode(input)
         
-        def initialize(**args, &body)
+            invokeID = LongInvokeIDAndPriority.decode(input)
+            dateTimeString = DType::OctetString.decode(input)
 
-            @confirmed = true
-            @breakOnError = false
-            @selfDescribe = false
-            @dateTime = nil
-            @invokeID = 0
-            @highPriority = false
-            @requests = []
-
-            if body
-                self.instance_exec(&body)
+            if dateTimeString.size > 0
+                dateTime = DType::DateTime.decode(StringIO.new(dateTimeString.encode))
+            else
+                dateTime = nil
             end
-    
+
+            spec = []
+            
+            while requestSpec.size < AXDR::Length.decode(input) do
+
+                case AXDR::Tag.decode(input)
+                when AccessRequestGet.tag
+                    spec << {:type => AccessRequestGet, :spec => CosemAttributeDescriptor.decode(input)}
+                else
+                    raise
+                end                
+            end
+
+            requests = []
+
+            spec.each do |s|
+
+                case s[:type]
+                when AccessRequestGet
+                    DType::NullData.decode(input)
+                    requests << s[:type].new(s[:spec])
+                when AccessRequestSet, AccessRequestAction
+                    requests << s[:type].new(s[:spec], DType.decode(input))
+                when AccessRequestGetWithSelection
+                    DType::NullData.decode(input)
+                    requests << s[:type].new(s[:spec], s[:selector])
+                when AccessRequestSetWithSelection
+                    requests << s[:type].new(s[:spec], s[:selector], DType.decode(input))
+                    raise
+                end
+
+            end
+
+            self.new(invokeID, dateTime, requests)
+            
+        end
+
+        def initialize(invokeID, dateTime, requests)
+        
+            @invokeID = invokeID
+            @dateTime = dateTime
+            @requests = requests
+            
         end
 
         # @return [String] COSEMpdu.XDLMS-APDU.access-request
-        def to_axdr
+        def encode
 
-            out = ""
-
-            invokeIDAndPriority = (@invokeID & 0x7fffff) |
-                ( @selfDescribe ? (0x1 << 28) : 0x0 ) |
-                ( @breakOnError ? (0x1 << 29) : 0x0 ) |
-                ( @confirmed ? (0x1 << 30) : 0x0 ) |
-                ( @highPriority ? (0x1 << 31) : 0x0 )
-                
-            out << [tag, invokeIDAndPriority].pack("CL>")
-
-            if @dateTime
-                out << AXDR::Length.new(@dateTime.to_axdr.size).encode
-                out << @dateTime.to_axdr
-            else
-                out << AXDR::Length.new(0).encode
-            end
-
-            out << AXDR::Length.new(@requests.size).encode
-            @requests.inject(out) { |acc, r| acc << r.to_request_spec }
-
-            out << AXDR::Length.new(@requests.size).encode
-            @requests.inject(out) { |acc, r| acc << r.to_request_data }
-
-            out
+            buffer = self.class.tag.encode
+            buffer << @invokeID.encode
+            buffer << AXDR::Length.new(@requests.size).encode
+            @requests.each{|req| buffer << req.encode_spec}
+            buffer << AXDR::Length.new(@requests.size).encode
+            @requests.each{|req| buffer << req.encode_data}
+            buffer
             
         end
 
@@ -98,6 +120,7 @@ module DLMSTrouble
                 @invokeID = id.to_i & 0x7fffff
             end
             self
+            
         end
 
         def invokeID

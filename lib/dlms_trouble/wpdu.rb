@@ -17,32 +17,46 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble::DType
 
-    class Boolean < DLMSTrouble::DType::Integer
+module DLMSTrouble
 
-        @tag = 3
-        @minValue = -128
-        @maxValue = 127
-        
-        def initialize(value)
-            case value
-            when 0, nil, false
-                @value = false
-            else
-                @value = true
+    class WPDU
+
+        attr_reader :src, :dst, :payload
+
+        def self.decode(input)
+
+            buffer = input.read(8).unpack("S>S>S>S>").each
+
+            if buffer.next != 1
+                raise "expecting version 1"
             end
+
+            src = buffer.next
+            dst = buffer.next
+            size = buffer.next
+
+            payload = input.read(size)
+
+            if payload.size != size
+                raise "EOF"
+            end
+
+            self.new(src, dst, payload)
+
         end
 
-        def to_axdr(**opts)
-            out = opts[:packed] ? "" : axdr_tag
-            out << [( (@value) ? 1 : 0 ) ].pack("C")
+        def initialize(src, dst, payload)
+            @src = src
+            @dst = dst
+            @payload = payload.freeze
+            @version = 1            
         end
-        
-        def to_native
-            @value
+
+        def encode
+            [@version, @src, @dst, @payload.size].pack("S>S>S>S>") << @payload            
         end
-        
+    
     end
 
 end

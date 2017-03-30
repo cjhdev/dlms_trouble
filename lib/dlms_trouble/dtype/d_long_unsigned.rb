@@ -19,46 +19,26 @@
 
 module DLMSTrouble::DType
 
-    class Integer < DType
-        
-        @tag = 15
-        @minValue = -128
-        @maxValue = 127
+    class LongUnsigned < Integer
 
-        def initialize(value)
-            super(value.to_i)
-            if !Range.new(self.class.minValue, self.class.maxValue).include? value.to_i
-                raise DTypeError.new "valid initialisation value for #{self.class} must be within range #{self.class.minValue}..#{self.class.maxValue}"
-            end            
-        end
+        @tag = 18
+        @minValue = 0
+        @maxValue = 65535
 
-        def to_axdr(**opts)
+        def encode(**opts)
             out = opts[:packed] ? "" : axdr_tag
-            out << [@value].pack("c")
+            out << [@value].pack("S>")
         end
 
-        def self.from_axdr(input, typedef=nil)            
+        def self.decode(input, typedef=nil)
             begin
-                val = input.read(1).unpack("c").first
+                val = input.read(2).unpack("S>").first
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
             end                        
             self.new(val)            
         end
 
-        def to_native
-            @value.to_i
-        end
-
-        
-
-            def self.minValue
-                @minValue
-            end
-            def self.maxValue
-                @maxValue
-            end
-        
     end
 
 end

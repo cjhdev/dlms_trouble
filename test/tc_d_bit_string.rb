@@ -26,10 +26,10 @@ class TestBitString < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x04\x08\x55".force_encoding("ASCII-8BIT"), DType::BitString.new(false,true,false,true,false,true,false,true).to_axdr)
-        assert_equal("\x04\x07\x54".force_encoding("ASCII-8BIT"), DType::BitString.new(false,true,false,true,false,true,false).to_axdr)
-        assert_equal("\x04\x08\x00".force_encoding("ASCII-8BIT"), DType::BitString.new(false,false,false,false,false,false,false,false).to_axdr)
-        assert_equal("\x04\x09\xff\x00".force_encoding("ASCII-8BIT"), DType::BitString.new(true,true,true,true,true,true,true,true,false).to_axdr)
+        assert_equal("\x04\x08\x55".force_encoding("ASCII-8BIT"), DType::BitString.new(false,true,false,true,false,true,false,true).encode)
+        assert_equal("\x04\x07\x54".force_encoding("ASCII-8BIT"), DType::BitString.new(false,true,false,true,false,true,false).encode)
+        assert_equal("\x04\x08\x00".force_encoding("ASCII-8BIT"), DType::BitString.new(false,false,false,false,false,false,false,false).encode)
+        assert_equal("\x04\x09\xff\x00".force_encoding("ASCII-8BIT"), DType::BitString.new(true,true,true,true,true,true,true,true,false).encode)
 
     end
 

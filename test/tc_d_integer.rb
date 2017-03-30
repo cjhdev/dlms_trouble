@@ -27,7 +27,7 @@ class TestInteger < Test::Unit::TestCase
 
     def test_to_axdr
     
-        assert_equal("\x0f\xD6".force_encoding("ASCII-8BIT"), DType::Integer.new(-42).to_axdr)
+        assert_equal("\x0f\xD6".force_encoding("ASCII-8BIT"), DType::Integer.new(-42).encode)
 
     end
 

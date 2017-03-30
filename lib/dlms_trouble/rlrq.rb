@@ -17,19 +17,38 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
-require "dlms_trouble"
+module DLMSTrouble
 
-class TestNullData < Test::Unit::TestCase
+    class RLRQ
+        @tag = BER::Identifier.new(2, cls: :APPLICATION)
+        def self.tag
+            @tag
+        end
+        def self.decode(input)
 
-    include DLMSTrouble
+            length = BER::Length.decode(input)
 
-    def test_to_axdr
+            case length
+            when :indefinite
+                raise
+            else
+                input = StringIO.new(input.read(length))
+                if input.size != length
+                    raise "EOF"
+                end                
+            end
+            
+        end
+        def initialize
+        end
+        def encode
 
-        assert_equal("\x00".force_encoding("ASCII-8BIT"), DType::NullData.new.encode)
-
+            buffer = ""
+            
+            buffer.prepend(BER::Length.new(buffer.size).encode)
+            buffer.prepend(self.class.tag.encode)
+            
+        end    
     end
-
-    
 
 end

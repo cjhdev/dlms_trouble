@@ -19,39 +19,44 @@
 
 module DLMSTrouble::DType
 
-    class OctetString < DType
+    class Structure < Array
 
-        @tag = 9
+        @tag = 2
 
-        def initialize(value)
-            super(value.to_s)
+        def push(value)
+            @value.push(value)
         end
 
-        def to_axdr(**opts)
-            out = opts[:packed] ? "" : axdr_tag
-            out << DLMSTrouble::AXDR::Length.new(@value.size).encode
-            out << @value
+        alias << push
+
+        def putTypeDescription
+            out = axdr_tag
+            out << AXDR::Length.new(@value.size).encode
+            @value.inject(out) do |acc, v|
+                acc << v.putTypeDescription
+            end            
         end
 
-        def self.from_axdr(input, typedef=nil)
+        def self.decode(input, typedef=nil)
+
             begin
-                _size = DLMSTrouble::AXDR::Length.decode(input)
-                val = input.read(_size.value)
-                if val.size != _size.value
-                    raise
-                end                
+                if typedef
+                    _size = DLMSTrouble::AXDR::Length.decode(typedef).value
+                else
+                    _size = DLMSTrouble::AXDR::Length.decode(input).value
+                end                                
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
-            end                        
-            self.new(val)            
-        end
+            end
+            
+            out = self.new
+            
+            while out.size < _size do
+                out << tagToType(((typedef ? typedef : input).read(1).unpack("C").first)).decode(input, typedef)                
+            end
 
-        def size
-            @value.size
-        end
+            out
 
-        def to_native
-            @value.to_s
         end
 
     end

@@ -26,7 +26,7 @@ class TestontCare < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\xff".force_encoding("ASCII-8BIT"), DType::DontCare.new.to_axdr)
+        assert_equal("\xff".force_encoding("ASCII-8BIT"), DType::DontCare.new.encode)
 
     end
 

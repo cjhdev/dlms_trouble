@@ -19,10 +19,28 @@
 
 module DLMSTrouble
 
-    class Association
+    class AccessRequestAction
 
-        
-    
+        @tag = AXDR::Tag.new(3)
+
+        def self.tag
+            @tag
+        end
+
+        def initialize(methodDescriptor, data)
+            @methodDescriptor = methodDescriptor
+            @data = data
+        end
+
+        def encode_spec
+            self.class.tag.encode << @methodDescriptor.encode
+        end
+
+        def encode_data
+            @data.encode
+        end
+
     end
 
 end
+

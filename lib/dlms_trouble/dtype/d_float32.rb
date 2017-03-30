@@ -19,26 +19,32 @@
 
 module DLMSTrouble::DType
 
-    class Long64Unsigned < Integer
+    class Float32 < DType
 
-        @tag = 21
-        @minValue = 0
-        @maxValue = 18446744073709551615
+        @tag = 23
 
-        def to_axdr(**opts)
-            out = opts[:packed] ? "" : axdr_tag
-            out << [@value].pack("Q>")
+        def initialize(value)
+            super([value.to_f].pack("g").unpack("g").first)
         end
 
-        def self.from_axdr(input, typedef=nil)
+        def encode(**opts)
+            out = opts[:packed] ? "" : axdr_tag
+            out << [@value].pack("g")
+        end
+
+        def self.decode(input, typedef=nil)            
             begin
-                val = input.read(8).unpack("Q>").first
+                val = input.read(4).unpack("g").first
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
             end                        
             self.new(val)            
         end
 
+        def to_native
+            @value.to_f
+        end
+        
     end
 
 end

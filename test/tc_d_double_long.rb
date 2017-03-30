@@ -26,7 +26,7 @@ class TestoubleLong < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DType::DoubleLong.new(-42).to_axdr)        
+        assert_equal("\x05\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DType::DoubleLong.new(-42).encode)        
         
     end
 

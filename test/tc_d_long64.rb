@@ -26,7 +26,7 @@ class TestLong64 < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DType::Long64.new(-42).to_axdr)
+        assert_equal("\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xD6".force_encoding("ASCII-8BIT"), DType::Long64.new(-42).encode)
 
     end
 

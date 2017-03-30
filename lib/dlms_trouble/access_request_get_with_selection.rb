@@ -1,3 +1,4 @@
+
 # Copyright (c) 2016 Cameron Harper
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -17,19 +18,31 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
-require "dlms_trouble"
+module DLMSTrouble
 
-class TestNullData < Test::Unit::TestCase
+    class AccessRequestGetWithSelection
 
-    include DLMSTrouble
+        @tag = AXDR::Tag.new(5)
 
-    def test_to_axdr
+        def self.tag
+            @tag
+        end
 
-        assert_equal("\x00".force_encoding("ASCII-8BIT"), DType::NullData.new.encode)
+        def initialize(attributeDescriptor, selectiveAccessDescriptor)
+            @attributeDescriptor = attributeDescriptor
+            @selectiveAccessDescriptor = selectiveAccessDescriptor
+        end
+
+        def encode_spec
+            buffer = self.class.tag.encode
+            buffer << @attributeDescriptor.encode
+            buffer << @selectiveAccessDescriptor.encode
+        end
+
+        def encode_data
+            DType::NullData.encode
+        end
 
     end
-
-    
 
 end

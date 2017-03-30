@@ -17,50 +17,27 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'dlms_trouble/obis'
-require 'dlms_trouble/axdr'
-require 'dlms_trouble/access_error'
-
 module DLMSTrouble
 
     class AccessRequestGet
 
-        TAG = 1
-
-        attr_reader :classID, :instanceID, :methodID
-
-        def initialize(classID, instanceID, methodID)
-            @classID = classID.to_i
-            @instanceID = OBIS.new(instanceID.to_s)
-            @methodID = methodID    
-        end
+        @tag = AXDR::Tag.new(1)
 
         def self.tag
-            TAG
+            @tag
         end
 
-        def tag
-            TAG
+        def initialize(attributeDescriptor)
+            @attributeDescriptor = attributeDescriptor        
         end
 
-        # @return [String]
-        def to_request_spec
-            [TAG, @classID, @instanceID.to_axdr, @methodID].pack("CS>A#{OBIS.size}c")
+        def encode_spec
+            self.class.tag.encode << @attributeDescriptor.encode
         end
 
-        # @return [String]
-        def to_request_data
-            DType::NullData.new.to_axdr
+        def encode_data
+            DType::NullData.new.encode
         end
-
-=begin
-        def requestfrom_axdr(axdr)
-            input = axdr.slice!(0).unpack("CS>A#{OBIS.size}c").each
-            if input.next.to_i == TAG
-                self.new(input.next, input.next, input.next)
-            end
-        end
-=end
 
     end
 

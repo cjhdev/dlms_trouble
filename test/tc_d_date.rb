@@ -32,7 +32,7 @@ class Testate < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x1A\xff\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DType::Date.new.to_axdr)
+        assert_equal("\x1A\xff\xff\xff\xff\xff".force_encoding("ASCII-8BIT"),DType::Date.new.encode)
 
     end
 

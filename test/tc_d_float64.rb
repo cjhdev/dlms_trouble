@@ -26,7 +26,7 @@ class TestFloat64 < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT"), DType::Float64.new(42.1).to_axdr)
+        assert_equal("\x18\x40\x45\x0C\xCC\xCC\xCC\xCC\xCD".force_encoding("ASCII-8BIT"), DType::Float64.new(42.1).encode)
 
     end
 

@@ -19,26 +19,41 @@
 
 module DLMSTrouble::DType
 
-    class DoubleLong < Integer
+    class OctetString < DType
 
-        @tag = 5
-        @minValue = -2147483648
-        @maxValue = 214783647
+        @tag = 9
 
-        def to_axdr(**opts)
-            out = opts[:packed] ? "" : axdr_tag
-            out << [@value].pack("l>")
+        def initialize(value)
+            super(value.to_s)
         end
 
-        def self.from_axdr(input, typedef=nil)            
+        def encode(**opts)
+            out = opts[:packed] ? "" : axdr_tag
+            out << DLMSTrouble::AXDR::Length.new(@value.size).encode
+            out << @value
+        end
+
+        def self.decode(input, typedef=nil)
             begin
-                val = input.read(4).unpack("l>").first
+                _size = DLMSTrouble::AXDR::Length.decode(input)
+                val = input.read(_size.value)
+                if val.size != _size.value
+                    raise
+                end                
             rescue
                 raise DTypeError.new "input too short while decoding #{self}"
             end                        
             self.new(val)            
         end
-        
+
+        def size
+            @value.size
+        end
+
+        def to_native
+            @value.to_s
+        end
+
     end
 
 end

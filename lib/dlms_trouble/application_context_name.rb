@@ -17,19 +17,54 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require "test/unit"
-require "dlms_trouble"
+module DLMSTrouble
 
-class TestNullData < Test::Unit::TestCase
+    class ApplicationContextName
 
-    include DLMSTrouble
+        SN_REFERENCING = "\x60\x85\x74\x05\x08\x01\x02".freeze
+        LN_REFERENCING = "\x60\x85\x74\x05\x08\x01\x01".freeze
 
-    def test_to_axdr
+        attr_reader :referencing
 
-        assert_equal("\x00".force_encoding("ASCII-8BIT"), DType::NullData.new.encode)
+        def self.decode(input)
 
+            id = BER::Identifier.decode(input)
+
+            if id.cls != :UNIVERSAL or !id.primitive? or id.tag !=
+                raise
+            end
+
+            length = BER::Length.decode(input)
+    
+            result = input.read(length.value)
+
+            if result.size != length.value
+                raise
+            end
+
+            case result
+            when SN_REFERENCING
+                ShortNames.new            
+            when LN_REFERENCING
+                LongNames.new
+            else
+                raise
+            end
+
+        end        
     end
 
+    class LongNames < ApplicationContextName
+        def encode
+            LN_REFERENCING
+        end
+    end
+
+    class ShortNames < ApplicationContextName
+        def encode
+            SN_REFERENCING
+        end
+    end
     
 
 end

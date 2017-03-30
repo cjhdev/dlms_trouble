@@ -26,7 +26,7 @@ class TestFloatingPoint < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), DType::FloatingPoint.new(42.1).to_axdr)
+        assert_equal("\x07\x42\x28\x66\x66".force_encoding("ASCII-8BIT"), DType::FloatingPoint.new(42.1).encode)
 
     end
 

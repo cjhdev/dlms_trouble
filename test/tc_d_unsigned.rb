@@ -26,7 +26,7 @@ class TestUnsigned < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x11\x2A".force_encoding("ASCII-8BIT"), DType::Unsigned.new(42).to_axdr)
+        assert_equal("\x11\x2A".force_encoding("ASCII-8BIT"), DType::Unsigned.new(42).encode)
         
     end
 

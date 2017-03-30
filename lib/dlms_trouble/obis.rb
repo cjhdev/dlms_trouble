@@ -57,7 +57,11 @@ module DLMSTrouble
 
         attr_reader :a,:b,:c,:d,:e,:f
 
-        def to_axdr
+        def self.decode(input)
+            self.new(input.read(self.size).unpack("C#{self.size}"))            
+        end
+
+        def encode
             @bytes
         end
 

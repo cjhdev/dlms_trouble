@@ -36,7 +36,7 @@ class TestStructure < Test::Unit::TestCase
                     DType::Boolean.new(false),
                     DType::OctetString.new("hello"),
                 )
-            ).to_axdr        
+            ).encode        
         )
     
     end

@@ -17,34 +17,21 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble::DType
+module DLMSTrouble
 
-    class Float32 < DType
-
-        @tag = 23
-
-        def initialize(value)
-            super([value.to_f].pack("g").unpack("g").first)
+    class SelectiveAccessDescriptor
+        def self.decode(input)
+            selector = input.read(1).unpack("C")
+            data = DType.decode(input)
+            self.new(selector, data)
         end
-
-        def to_axdr(**opts)
-            out = opts[:packed] ? "" : axdr_tag
-            out << [@value].pack("g")
+        def initialize(selector, data)
+            @selector = selector
+            @data = data
         end
-
-        def self.from_axdr(input, typedef=nil)            
-            begin
-                val = input.read(4).unpack("g").first
-            rescue
-                raise DTypeError.new "input too short while decoding #{self}"
-            end                        
-            self.new(val)            
+        def encode
+            [@selector].pack("C") << @data.encode
         end
-
-        def to_native
-            @value.to_f
-        end
-        
     end
 
 end

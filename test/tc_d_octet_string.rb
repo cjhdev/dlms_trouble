@@ -26,7 +26,7 @@ class TestOctetString < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x09\x05hello".force_encoding("ASCII-8BIT"), DType::OctetString.new("hello").to_axdr)
+        assert_equal("\x09\x05hello".force_encoding("ASCII-8BIT"), DType::OctetString.new("hello").encode)
 
     end
 

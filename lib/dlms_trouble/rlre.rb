@@ -17,28 +17,38 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module DLMSTrouble::DType
+module DLMSTrouble
 
-    class Enum < Integer
-
-        @tag = 22
-        @minValue = 0
-        @maxValue = 255
-
-        def to_axdr(**opts)
-            out = opts[:packed] ? "" : axdr_tag
-            out << [@value].pack("C")
+    class RLRE
+        @tag = BER::Identifier.new(3, cls: :APPLICATION)
+        def self.tag
+            @tag
         end
+        def self.decode(input)
 
-        def self.from_axdr(input, typedef=nil)            
-            begin
-                val = input.read(1).unpack("C").first
-            rescue
-                raise DTypeError.new "input too short while decoding #{self}"
-            end 
-            self.new(val)            
+            length = BER::Length.decode(input)
+
+            case length
+            when :indefinite
+                raise
+            else
+                input = StringIO.new(input.read(length))
+                if input.size != length
+                    raise "EOF"
+                end                
+            end
+            
         end
+        def initialize
+        end
+        def encode
 
+            buffer = ""
+            
+            buffer.prepend(BER::Length.new(buffer.size).encode)
+            buffer.prepend(self.class.tag.encode)
+            
+        end    
     end
 
 end

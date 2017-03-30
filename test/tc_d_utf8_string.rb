@@ -26,7 +26,7 @@ class TestUTF8String < Test::Unit::TestCase
 
     def test_to_axdr
 
-        assert_equal("\x0c\x05world".force_encoding("ASCII-8BIT"), DType::UTF8String.new("world").to_axdr)
+        assert_equal("\x0c\x05world".force_encoding("ASCII-8BIT"), DType::UTF8String.new("world").encode)
 
     end
 
