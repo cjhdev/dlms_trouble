@@ -19,6 +19,7 @@
 
 require "test/unit"
 require "dlms_trouble"
+require "stringio"
 
 class TestAXDR < Test::Unit::TestCase
 
